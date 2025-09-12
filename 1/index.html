@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+
+    <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;   
+            padding: 2rem;
+            line-height: 1.6;
+            font-family: "Georgia", serif; 
+            background-color: #f7e2aa;
+        }
+
+        img.centered {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 80%;        
+        height: auto;
+        }
+
+        h1 {
+        text-align: center; 
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #633821;
+        padding-bottom: 0.5rem;
+        }
+
+        h2 {
+        text-align: center;  
+        font-size: 1.6rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h3 {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h4 {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #633821;
+        }
+
+        p {
+        text-align: left;  
+        margin: 1rem 0;
+        color: #2f2f2f;
+        }
+
+        div.gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+        div.gallery-item {
+            margin: 5px;
+            width: 320px;
+            }
+
+        div.gallery-item img {
+            width: 100%;
+            height: auto;
+            }
+
+        div.gallery-item div.desc {
+            padding: 15px;
+            text-align: center;
+            }
+    </style>
+</head>
+
+<body>
+    <h1>Images of the Russian Empire: Colorizing the Prokudin-Gorskii photo collection</h1>
+
+    <h2>Overview</h2>
+
+    <p> In 1907, a man named Sergei Mikhailovich Prokudin-Gorskii traveled around Russia to take photographs of empirial Russia. However, instead of capturing black and white images,
+        he took three images at different exposures using red, blue, and green filters. Thankfully, the Library of Congress has purchased the RGB negatives
+        and they are <a href="https://www.loc.gov/collections/prokudin-gorskii/?st=grid">available to be downloaded online</a>. The task of this project is to use various alignment techniques
+        as well as post-processing steps to accurately line up the RGB images.</p>
+
+    <h2>Part 1: Aligning Small-Scale Images</h2>
+
+    <p>I first started off with implementing the euclidean norm (L2 norm). First, I only
+        looked at the top left corner of the image, but later I modified the function to also make the window dynamic (smaller and/or shifted).
+     </p>
+
+    <h3>Naive alignment algorithm overview</h3>
+
+    <p>For the alignment algorithm, I looped through a window of [-15,15] for both x and y coordinates. For every new point in the window, I shifted the non-blue channel using np.roll, such that the top leftmost
+        corner of the channel was at the chosen point. I then called on my metrics (euclidean or ncc) function to obtain a scalar value and updated my best metric and best coordinate values
+        in accordance with the scalar metric output. The algorithm returned both the aligned non-blue channel and the coordinates by which the channel was shifted. </p>
+
+    <h3>Euclidean norm overview</h3>
+
+    <p>As outlined on the course website, I used the following equation: sqrt(sum(sum((image1-image2).^2))), which I then incorporated
+        into a "naive_align" function. 
+    </p>
+
+    <h3>Normalized cross correlation (ncc) overview</h3>
+
+    <p>I first converted my image vectors from 2D to 1D, then followed the equations from the course website: (image1./||image1|| and image2./||image2||) to obtain 
+        a single scalar value. I had to work with the images as 1D vectors to obtain a single scalar metric output. 
+    </p> 
+
+    <p>For the following images, I only used euclidean norm/ncc, no pyramid and no bells and whistles.</p>
+    <div class="gallery">
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/cathedral_euclidean.jpg">
+    <img src="./media/cathedral_euclidean.jpg" alt="cathedral" width="600" height="300">
+  </a>
+  <div class="desc">Cathedral: R (-1, 7), G (-1, 1)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/monastery_euclidean.jpg">
+    <img src="./media/monastery_euclidean.jpg" alt="monastery" width="600" height="400">
+  </a>
+  <div class="desc">Monastery: R (1, 9), G (0, -6)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/tobolsk_euclidean.jpg">
+    <img src="./media/tobolsk_euclidean.jpg" alt="tobolsk" width="600" height="400">
+  </a>
+  <div class="desc">Tobolsk: R (3, 6), G (2, 3)</div>
+</div>
+
+</div>
+
+<p>The ncc metric produced even worse results than in the no alignment case. This is probably
+    because the borders are heavily influencing the correlation. 
+</p>
+
+<div class="gallery">
+<div class="gallery-item">
+  <a target="_blank" href="./media/cathedral_ncc.jpg">
+    <img src="./media/cathedral_ncc.jpg" alt="cathedral" width="600" height="300">
+  </a>
+  <div class="desc">Cathedral: R (13, 14), G (14, 10)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/monastery_ncc.jpg">
+    <img src="./media/monastery_ncc.jpg" alt="monastery" width="600" height="400">
+  </a>
+  <div class="desc">Monastery: R (14, 14), G (14, 14)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/tobolsk_ncc.jpg">
+    <img src="./media/tobolsk_ncc.jpg" alt="tobolsk" width="600" height="400">
+  </a>
+  <div class="desc">Tobolsk: R (14, 14), G (14, 14)</div>
+</div>
+
+</div>
+
+
+<h2>Part 2: Multi-scale Pyramid Alignment</h2>
+
+<p>I found the <a href="https://visionbook.mit.edu/pyramids_new_notation.html">MIT Computer Vision textbook</a> helpful when implementing my Gaussian pyramid. 
+    Out of all of the project algorithms, I struggled with this one the most (because I forgot what recursion was). </p>
+    
+    <p>First, I changed my naive alignment implementation to handle a dynamic window. When recursing to the maximum pyramid depth, the smallest image will look at the top leftmost 
+    corner of some predefined size (I chose to look at height//10, width//10) and choose the best coordinates from that corner. Every subsequent upward step in the pyramid will use that best
+    coordinate and construct a new window based on the coordinates found in the previous step. A small point I had to debug was how much the window should decrease from step to step. I decided to 
+    first use a static offset to adjust window size, but then realized the offset should change based on pyramid level to make the process more efficient. 
+</p>
+
+<p>The following alignments were created using an image pyramid with a depth of 6 for the tif images, and a depth of 2 for the jpg images, and
+    only using the euclidean norm metric.
+</p>
+
+<div class="gallery">
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/cathedral_euclidean_pyramid.jpg">
+    <img src="./media/cathedral_euclidean_pyramid.jpg" alt="cathedral" width="600" height="300">
+  </a>
+  <div class="desc">Cathedral: R (0, 4), G (0, 0)</div>
+</div>    
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/monastery_euclidean_pyramid.jpg">
+    <img src="./media/monastery_euclidean_pyramid.jpg" alt="monastery" width="600" height="300">
+  </a>
+  <div class="desc">Monastery: R (0, 4), G (0, 0)</div>
+</div> 
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/tobolsk_euclidean_pyramid.jpg">
+    <img src="./media/tobolsk_euclidean_pyramid.jpg" alt="tobolsk" width="600" height="300">
+  </a>
+  <div class="desc">Tobolsk: R (1, 3), G (1, 1)</div>
+</div> 
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/church_euclidean_pyramid.jpg">
+    <img src="./media/church_euclidean_pyramid.jpg" alt="church" width="600" height="300">
+  </a>
+  <div class="desc">Church: R (0, 26), G (0, 0)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/emir_euclidean_pyramid.jpg">
+    <img src="./media/emir_euclidean_pyramid.jpg" alt="emir" width="600" height="300">
+  </a>
+  <div class="desc">Emir: R (9, 53), G (4, 0)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/harvesters_euclidean_pyramid.jpg">
+    <img src="./media/harvesters_euclidean_pyramid.jpg" alt="harvesters" width="600" height="300">
+  </a>
+  <div class="desc">Harvesters: R (4, 60), G (0, 59)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/icon_euclidean_pyramid.jpg">
+    <img src="./media/icon_euclidean_pyramid.jpg" alt="icon" width="600" height="300">
+  </a>
+  <div class="desc">Icon: R (11, 45), G (8, 21)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/italil_euclidean_pyramid.jpg">
+    <img src="./media/italil_euclidean_pyramid.jpg" alt="italil" width="600" height="300">
+  </a>
+  <div class="desc">Italil: R (17, 39), G (9, 19)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/lastochikino_euclidean_pyramid.jpg">
+    <img src="./media/lastochikino_euclidean_pyramid.jpg" alt="lastochikino" width="600" height="300">
+  </a>
+  <div class="desc">Lastochikino: R (1, 112), G (0, 0)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/lugano_euclidean_pyramid.jpg">
+    <img src="./media/lugano_euclidean_pyramid.jpg" alt="lugano" width="600" height="300">
+  </a>
+  <div class="desc">Lugano: R (0, 95), G (0, 1)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/melons_euclidean_pyramid.jpg">
+    <img src="./media/melons_euclidean_pyramid.jpg" alt="melons" width="600" height="300">
+  </a>
+  <div class="desc">Melons: R (4, 88), G (2, 41)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/self_portrait_euclidean_pyramid.jpg">
+    <img src="./media/self_portrait_euclidean_pyramid.jpg" alt="self-portrait" width="600" height="300">
+  </a>
+  <div class="desc">Self-Portrait: R (0, 66), G (0, 26)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/siren_euclidean_pyramid.jpg">
+    <img src="./media/siren_euclidean_pyramid.jpg" alt="siren" width="600" height="300">
+  </a>
+  <div class="desc">Siren: R (0, 50), G (0, 24)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/three_generations_euclidean_pyramid.jpg">
+    <img src="./media/three_generations_euclidean_pyramid.jpg" alt="three_generations" width="600" height="300">
+  </a>
+  <div class="desc">Three Generations: R (4, 54), G (2, 26)</div>
+</div>
+
+</div>
+
+<h2>Part 3: Bells & Whistles</h2>
+
+<p>Automatic cropping surprisingly took up most of my time and I was very frustrated with it. I initially thought about using edge detection (even before we had 
+    the lecture on it) but I also had to think long and hard about how to find the image borders. Phase alignment was easier to implement than 
+    I thought it would be and the results were striking. I'm still not sure why some images (like the monastery) refuse to be aligned even after using Fourier Transforms.
+</p>
+
+<p>Note: I implemented the bells and whistles in the order they are presented.</p>
+
+<h3>Automatic Cropping</h3>
+
+<p>First, I used an edge detection algorithm to outline the edges in the image. I used skimage's Canny filter because it seemed to have more control over thresholding, 
+    but ended up performing about the same as the Sobel filter. Next, I summed the image along the x and y axes and looped through the first tenth of the rows and columns in 
+    the image, keeping track of the maximum value and assigning the vertical and horizontal border to argmax. Since a border is a vertical or horizontal line, the maximum value
+    in the appropriate part of the image should correspond to an edge! For the right and bottom borders, I looped through the last tenth of the rows and columns of the 
+    image (right to left) to detect the argmax.
+</p>
+
+<p>Coordinates for cropping for all channels in the Emir image ended up being:</p>
+<ul>
+  <li>Top left corner is (319, 369)</li>
+  <li>Bottom right corner is (2890, 3333)</li>
+</ul>
+
+<img src="./media/emir_euclidean_cropped.png" alt="melons" class="centered">
+
+<h4> Problems </h4>
+<p>The main issue is that the borders are not perfect horizontal and vertical lines, so this approach won't work if there are a lot of edges right next to the border of the image.
+    (for example: the melons image, where the algorithm cropped too much). For this approach, more sophisticated algorithms should be explored (or I guess slap an ML model on it, as
+    most people do nowadays).</p>
+
+<img src="./media/melons_crop_problem.png" alt="melons" class="centered">
+
+<h3>Better feature mapping: Phase Alignment</h3>
+
+<p>Here, I followed the <a href="https://en.wikipedia.org/wiki/Phase_correlation">Wikipedia article</a> on phase correlation. To compute our phase correlation, we take the Fourier transform of our two image channels
+and compute their cross-power spectrum, which returns a peak where the images are most aligned in Fourier space. Then, we take the inverse Fourier transform to find the correlation peak back in 
+our original image land and find the image coordinates corresponding to that peak. The results of the algorithm are stunning. </p>
+
+<div class="gallery">
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/melons_phase_uncropped.jpg">
+    <img src="./media/melons_phase_uncropped.jpg" alt="melons" width="600" height="300">
+  </a>
+  <div class="desc">Melons: R (14, 176), G (8, 79)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/harvesters_phase_uncropped.jpg">
+    <img src="./media/harvesters_phase_uncropped.jpg" alt="harvesters" width="600" height="300">
+  </a>
+  <div class="desc">Harvesters: R (11, 118), G (11, 55)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/self_portrait_phase_uncropped.jpg">
+    <img src="./media/self_portrait_phase_uncropped.jpg" alt="self-portrait" width="600" height="300">
+  </a>
+  <div class="desc">Self-Portrait: R (37, 175), G (29, 77)</div>
+</div>
+
+</div>
+
+<h3>Automatic White Balancing</h3>
+
+<p>I referenced the following <a href="https://en.wikipedia.org/wiki/Color_balance">Wikipedia article</a> for color balancing and followed this equation: 255/(max value of the channel)
+    for each of the RGB channels and then multiplied each channel by the resulting scalar value. However, the results are very underwhelming because the maximum values at each channel were already close to 255
+    so there wasn't much white-balancing that occurred.
+ </p>
+
+ <img src="./media/melons_white_balanced.png" alt="melons" class="centered">
+
+<h3>Adjusting Contrasting</h3>
+
+<h4>Histogram Equalization</h4>
+
+<p>I wanted to implement it myself, but I didn't have enough time, so instead I used skimage's exposure.equalize_hist and exposure.equalize_adapthist. Equalize histogram works just as described
+    in lecture, where we flatten the histogram of the image to increase contrast. And as opposed to the global contrast enhancement in regular histogram equalization, adaptive histogram equalization 
+    does contrast enhancement over local tiles of the image, as described in the <a href="https://scikit-image.org/docs/0.25.x/api/skimage.exposure.html#skimage.exposure.equalize_adapthist">function description</a>.
+ </p>
+
+ <img src="./media/self_portrait_histogram_equal.png" alt="self-portrait" class="centered">
+
+ <h4>Power Law Transformations</h4>
+
+<p>Here, I again used skimage's functions for adjusting <a href="https://scikit-image.org/docs/0.25.x/auto_examples/color_exposure/plot_log_gamma.html">image exposure</a>: gamma, log, and sigmoid.
+    These functions use the power-law transforms we learned in class, where the normalized pixel intensity (range must be 0-1) is raised to the power of the gamma, log, etc to increase contrast.
+</p>
+
+<img src="./media/emir_power_transform.png" alt="emir" class="centered">
+
+<h2>Final Gallery</h2>
+
+<p>The following is the gallery after all of the bells and whistles have been applied. For all of the following I used phase alignment, automatic cropping (after image alignment), 
+    and adaptive histogram equalization:
+</p>
+
+<div class="gallery">
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/cathedral_final_gallery.jpg">
+    <img src="./media/cathedral_final_gallery.jpg" alt="cathedral" width="600" height="300">
+  </a>
+  <div class="desc">Cathedral: R (3, 12), G (2, 5)</div>
+</div>    
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/tobolsk_final_gallery.jpg">
+    <img src="./media/tobolsk_final_gallery.jpg" alt="tobolsk" width="600" height="300">
+  </a>
+  <div class="desc">Tobolsk: R (3, 6), G (2, 3)</div>
+</div> 
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/church_final_gallery.jpg">
+    <img src="./media/church_final_gallery.jpg" alt="church" width="600" height="300">
+  </a>
+  <div class="desc">Church: R (4, 58), G (3, 25)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/emir_final_gallery.jpg">
+    <img src="./media/emir_final_gallery.jpg" alt="emir" width="600" height="300">
+  </a>
+  <div class="desc">Emir: R (41, 106), G (24, 49)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/harvesters_final_gallery.jpg">
+    <img src="./media/harvesters_final_gallery.jpg" alt="harvesters" width="600" height="300">
+  </a>
+  <div class="desc">Harvesters: R (11, 118), G (11, 55)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/icon_final_gallery.jpg">
+    <img src="./media/icon_final_gallery.jpg" alt="icon" width="600" height="300">
+  </a>
+  <div class="desc">Icon: R (23, 88), G (16, 39)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/italil_final_gallery.jpg">
+    <img src="./media/italil_final_gallery.jpg" alt="italil" width="600" height="300">
+  </a>
+  <div class="desc">Italil: R (36, 77), G (22, 38)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/lastochikino_final_gallery.jpg">
+    <img src="./media/lastochikino_final_gallery.jpg" alt="lastochikino" width="600" height="300">
+  </a>
+  <div class="desc">Lastochikino: R (9, 76), G (1, 3)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/lugano_final_gallery.jpg">
+    <img src="./media/lugano_final_gallery.jpg" alt="lugano" width="600" height="300">
+  </a>
+  <div class="desc">Lugano: R (29, 92), G (18, 40)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/melons_final_gallery.jpg">
+    <img src="./media/melons_final_gallery.jpg" alt="melons" width="600" height="300">
+  </a>
+  <div class="desc">Melons: R (14, 176), G (8, 79)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/self_portrait_final_gallery.jpg">
+    <img src="./media/self_portrait_final_gallery.jpg" alt="self-portrait" width="600" height="300">
+  </a>
+  <div class="desc">Self-Portrait: R (37, 175), G (29, 77)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/siren_final_gallery.jpg">
+    <img src="./media/siren_final_gallery.jpg" alt="siren" width="600" height="300">
+  </a>
+  <div class="desc">Siren: R (24, 97), G (5, 50)</div>
+</div>
+
+<div class="gallery-item">
+  <a target="_blank" href="./media/three_generations_final_gallery.jpg">
+    <img src="./media/three_generations_final_gallery.jpg" alt="three_generations" width="600" height="300">
+  </a>
+  <div class="desc">Three Generations: R (7, 111), G (12, 56)</div>
+</div>
+
+</div>
+
+<h2>Extras</h2>
+
+<div class="gallery">
+
+    <div class="gallery-item">
+        <a target="_blank" href="./media/oranzherie_final_gallery.jpg">
+    <img src="./media/oranzherie_final_gallery.jpg" alt="oranzherie" width="600" height="300">
+    </a>
+    <div class="desc">Oranzherie: R (33, 126), G (27, 60)</div>
+    </div>
+
+    <div class="gallery-item">
+        <a target="_blank" href="./media/cotton_gin_final_gallery.jpg">
+    <img src="./media/cotton_gin_final_gallery.jpg" alt="cotton_gin" width="600" height="300">
+    </a>
+    <div class="desc">Cotton gin: R (41, 132), G (27, 61)</div>
+    </div>
+
+    <div class="gallery-item">
+        <a target="_blank" href="./media/solovetskyi_monostyr_final_gallery.jpg">
+    <img src="./media/solovetskyi_monostyr_final_gallery.jpg" alt="solovetskyi_monostyr" width="600" height="300">
+    </a>
+    <div class="desc">Solovetskyi monastery: R (14, 125), G (7, 38)</div>
+    </div>
+
+</div>
+
+</body>
