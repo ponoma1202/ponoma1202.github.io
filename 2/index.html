@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+
+    <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;   
+            padding: 2rem;
+            line-height: 1.6;
+            font-family: "Georgia", serif; 
+            background-color: #f7e2aa;
+        }
+
+        img.centered {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 100%;        
+        height: auto;
+        }
+
+        h1 {
+        text-align: center; 
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #0d0501;
+        color: #633821;
+        padding-bottom: 0.5rem;
+        }
+
+        h2 {
+        text-align: center;  
+        font-size: 1.6rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h3 {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h4 {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #633821;
+        }
+
+        p {
+        text-align: left;  
+        margin: 1rem 0;
+        color: #2f2f2f;
+        }
+
+        pre code {
+        background: #f4c859;
+        padding: 10px;
+        display: block;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: "Fira Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+        }
+
+        .note {
+        font-size: 0.9em;
+        color: #544949;
+        background: #fff7d6;
+        border-left: 4px solid #865c24;
+        padding: 8px 12px;
+        margin: 12px 0;
+        border-radius: 6px;
+        }
+
+        div.gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+        div.gallery-item {
+            margin: 5px;
+            width: 320px;
+            height: auto;   /* 420px */
+            overflow: hidden;
+            }
+
+        div.gallery-item img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            }
+
+        div.gallery-item div.desc {
+            padding: 15px;
+            text-align: center;
+            }
+    </style>
+</head>
+
+<body>
+    <h1>Filters and Frequencies: Splining</h1>
+
+    <h2>Part 1: Fun with Filters</h2>
+
+    <h3>Part 1.1: Convolutions from Scratch</h3>
+
+    <p> When writing my own code for convolution, I found it more intuitive to implement the it using two loops rather than four. I started off by 
+        convolving a small 9 by 9 random image, which made padding more intuitive and aligned more with what we covered in lecture. But, when dealing 
+        with a rectangular image, I had to keep track of two variables for padding: one for height and one for width, instead of just working with one 
+        for a square image. Adjusting array indexing in the "result" variable because of padding was one of the more frustrating aspects of this part.  </p>
+
+    <pre><code> ### Implementation of convolution in 2 loops!
+    def convolution(input_img, kernel):
+        img = input_img.copy()
+        output = np.zeros_like(img)                
+        if kernel.ndim == 2:
+            kernel = np.flip(kernel, axis=(0,1))       
+        else:
+            kernel = np.flip(kernel)
+
+        kernel_height, kernel_width = kernel.shape          # Padding for non-square kernel
+        k_height, k_width = (kernel_height - 1)//2, (kernel_width - 1)//2
+
+        img = np.pad(img, ((k_height, k_height), (k_width, k_width)), 'constant', constant_values=0)
+
+        for i in range(k_height, img.shape[0] - k_height):    
+            for j in range(k_width, img.shape[1] - k_width):
+                result = kernel * img[i-k_height:i+k_height+1, j-k_width:j+k_width+1]
+                output[i-k_height,j-k_width] = np.sum(result)
+        return output
+</code></pre>
+
+<p>Then to do convolution of the box filter and Dx, Dy operators with the image: </p>
+
+    <pre><code>    dx = np.array([[1.0, 0.0, -1.0]])
+    dy = np.array([[1.0], [0.0], [-1.0]])       # dy needs to be a column vector
+
+    box_filter = 1/9 * np.ones((3,3))
+
+    box_convo = convolution(img, box_filter) 
+    dx_convo = convolution(img, dx)
+    dy_convo = convolution(img, dy)</code></pre>
+
+    <p>When comparing my convolution against scipy's version, especially on a large image, I noticed that my implementation
+        took 2 minutes to run on a (5712 , 4272) array, while scipy only took around a second. For my implementation of a convolution, I 
+        used basic padding and implemented scipy's equivalent of the "same" mode. I did not implement any of the boundry options we talked about
+        in class (wrap, reflection, fill, etc) that scipy offers.
+    </p>
+
+    <aside class="note"> <b>Image Info</b>: Self-portrait taken at Ikea (went there for the meatballs over the weekend.) </aside>
+
+    <img src="./media/part1_1_plot.png" alt="box_filter" class="centered">
+
+    <h3>Part 1.2: Finite Difference Operator</h3>
+
+    <p>To take the gradient of an image, I convolved the image with the following vector Dx = [-1 0 1], which is the discrete equivalent of
+        the limit definition of a derivative. However, convolving with the vector Dx will give the image gradients in the x direction. For the 
+        y direction, I convolved image with the same vector transposed: Dy. Then, I calculated the gradient magnitude by taking the Euclidean 
+        norm of the resulting Dx and Dy images. </p>
+
+    <img src="./media/cameraman_filtered.png" alt="cameraman_filtered" class="centered">
+
+    <p>To make the edges more explicit, I thresholded the gradient magnitude image to retain edges above a certain threshold and exclude any 
+        edges with values below that threshold. A threshold closer to 0 allows for more edges to be detected (which
+        also increases the amount of noise). I chose to keep some edges from the image background by setting the threshold to 0.25.
+        A threshold of 0.35 shows the tradeoff between edge strength and noise/number of edges captured.  
+    </p>
+
+    <img src="./media/cameraman_edges.png" alt="cameraman_edges" class="centered" width="90%">
+
+    <h3>Part 1.3: Derivative of Gaussian (DoG) Filter</h3>
+
+    <p>To create a Gaussian filter with standard deviation σ and kernel size 2σ + 1, I used the cv2.getGaussianKernel function. My derivatives of the Guassian 
+        filter (with σ=3 for the cameraman image) are as follows: </p>
+
+    <img src="./media/dog_visualization.png" alt="DoG" class="centered" width="60%">
+
+    <p> As expected, when I blurred the image with the Gaussian then took the derivative, the result was the same as when I took
+        the derivative of the Gaussian filter (DoG) then blurred the image with the DoG. This works because convolution is commutative (hooray to math)!
+    </p>
+
+    <img src="./media/cameraman_dog.png" alt="gauss_deriv" class="centered" width="100%">
+
+    <p>When applying the DoG to the image, I noticed the edges can be much more clearly detected in the magnitude image
+        than if we were to take only the derivative:
+    </p>
+
+    <img src="./media/gauss_derivative.png" alt="gauss_deriv" class="centered" width="100%">
+
+    <h3>Bells & Whistles</h3>
+
+    <p>I referenced this <a href="https://en.wikipedia.org/wiki/Image_gradient">image gradient article</a> and used the following formula to calculate gradient 
+        orientations in the cameraman image: arctan[Dy/Dx]. Then, I used one of the cyclic color maps in matplotlib (hsv) 
+        to visualize the results. Red indicates the edges caught by the Dx operator (look at cameraman outline) and green indicates the most prominent edges caught by the Dy operator (look at background hills). </p> 
+
+    <img src="./media/cameraman_angles.png" alt="cameraman_angles" class="centered" width="35%">
+
+    
+    <h2>Part 2: Fun with Frequencies</h2>
+
+    <h3>Part 2.1: Image "Sharpening"</h3>
+
+    <p>To implement image sharpening, I convolved the image with a Gaussian blur kernel to obtain low frequency information. Then, I subtracted the low frequency information from the original image
+        to obtain the high frequencies, which multiplied by a scalar factor alpha and added back to the original image to get the sharpened result. 
+    </p>
+
+    <img src="./media/taj_sharpened.png" alt="taj_sharpened" class="centered" width="100%">
+
+    <p>When increasing the alpha value, the image becomes more "grainy" since there is more and more high frequency information being introduced back into the original image. This can be most clearly seen 
+        on the rosemary branch, the spices on the chicken, and the aluminum foil. 
+    </p>
+
+    <aside class="note"> <b>Image Info</b>: Recipe is roasted chicken with apple, onion, and fennel from NYT cooking for those interested! </aside>
+
+    <img src="./media/chicken_sharpened.png" alt="chicken_sharpened" class="centered" width="100%">
+
+    <p>Now, what happens when we sharpen an already sharp image? Below, I sharpened the bagel image with an alpha=10 and sharpened it again with an alpha of 5. 
+        Unsurprisingly, the resulting image was pretty much the same as the image when it was first sharpened. 
+    </p>
+
+    <aside class="note"> <b>Image Info</b>: Bagel is with smoked salmon, fresh fennel, cream cheese. </aside>
+
+    <img src="./media/re_sharpened_bagel.png" alt="bagel_resharpened" class="centered" width="100%">
+
+    <h3>Part 2.2: Hybrid Images</h3>
+
+    <p>To create the hybrid images seen below, I first aligned the images to make them look more appealing when overlapped. I then convolved one of the images with a Gaussian blur kernel (low pass filter) 
+        and convolved the second image with (an impulse - Gaussian kernel), which acts as a high pass filter. After adding the resulting low and high pass images together, I obtained the hybrid images shown below. </p>
+
+    <aside class="note"> <b>Note</b>: Please zoom in to better see the high frequency information in some of the images! </aside>
+
+    <aside class="note"> <b>Image Info</b>: The Masha hybrid image was taken of my friend Masha during our weekend outing to Ikea (for the Swedish meatballs of course). The car hybrid image was taken at the Rodeo Drive Concours d'Elegance 2025
+        car show in Beverly Hills. The red car is a 1910 Pope Hartford and the green is a 1911 Rambler Model 65. </aside>
+
+    <div class="gallery">
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/derek_nutmeg_hybrid.jpg">
+            <img src="./media/derek_nutmeg_hybrid.jpg" alt="derek_nutmeg_hybrid">
+        </a>
+        <div class="desc">Derek-Nutmeg hybrid</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/DerekPicture.jpg">
+            <img src="./media/DerekPicture.jpg" alt="Derek" width="80%">
+        </a>
+        <div class="desc">Derek original picture</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/nutmeg.jpg">
+            <img src="./media/nutmeg.jpg" alt="Nutmeg">
+        </a>
+        <div class="desc">Nutmeg original picture</div>
+        </div> 
+
+         <div class="gallery-item">
+        <a target="_blank" href="./media/masha_hybrid.jpg">
+            <img src="./media/masha_hybrid.jpg" alt="masha_hybrid">
+        </a>
+        <div class="desc">Masha hybrid</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/masha_direct.jpg">
+            <img src="./media/masha_direct.jpg" alt="masha_direct" width="80%">
+        </a>
+        <div class="desc">Masha looking directly</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/masha_tilted.jpg">
+            <img src="./media/masha_tilted.jpg" alt="masha_tilted">
+        </a>
+        <div class="desc">Masha tilting her head</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/hybrid_cars.jpg">
+            <img src="./media/hybrid_cars.jpg" alt="car_hybrid">
+        </a>
+        <div class="desc">Car hybrid</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/rambler.jpg">
+            <img src="./media/rambler.jpg" alt="rambler" width="80%">
+        </a>
+        <div class="desc">1911 Rambler Model 65</div>
+        </div> 
+
+        <div class="gallery-item">
+        <a target="_blank" href="./media/hartford.jpg">
+            <img src="./media/hartford.jpg" alt="hartford">
+        </a>
+        <div class="desc">1910 Pope Hartford</div>
+        </div> 
+
+    </div>
+
+    <p>Let's take a more detailed look at the hybrid car image! Below, you can see the alignment of the Rambler and the Hartford as well as the two automobiles being low passed 
+        and high passed, respectively. For the automobile hybrid image especially, the devil was in the details: there were too many of them in the Hartford! When I tried to 
+        decrease the amount of high frequency information, the Hartford wasn't visible enough but the Rambler was always clearly seen, so I decided to use a high σ value 
+        for the Rambler (σ = 50) to decrease the low frequency information and used a σ of 40 for the Hartford to keep the color of the Hartford visible.
+    </p>
+
+    <img src="./media/hybrid_car_details.png" alt="hybrid_car_details" class="centered" width="100%">
+
+    <p>The plots below show the hybrid automobile image in Fourier space. As you can see below, the hybrid  retains a lot of the high frequency information from 
+        the Hartford (look at regions in the graph further from the origin), meanwhile the low frequency information resembles that of the Rambler's FFT graph.
+    </p>
+
+    <img src="./media/hybrid_car_freq.png" alt="hybrid_car_freq" class="centered" width="100%">
+
+    <h3>Bells & Whistles</h3>
+
+    <p>To make things a bit more interesting, I tried to play around with the colors in the hybrid automobile image. I set either the Rambler or the Hartford image to grayscale.
+        Making the high frequency component gray doesn't make too much of a difference to the hybrid image. However, removing color from the low frequency component does
+        reduce the amount of color in the hybrid significantly. In the hybrid automobile example, it actually makes the Hartford more easily visible (when working with downsampled images as seen below)! 
+    </p>
+
+    <img src="./media/hybrid_car_gray_plot.png" alt="hybrid_car_gray_rgb" class="centered" width="100%">
+
+    <p>With the full scale images, though, making the Rambler gray makes the entire image pretty much gray. But, I think that for carefully chosen images, making either the low pass or high pass 
+        image grayscale can be quite interesting!</p>
+
+    <img src="./media/hybrid_car_gray_plot_high_quality.png" alt="hybrid_car_gray_rgb" class="centered" width="100%">
+
+    <h2>Multi-resolution Blending and the Oraple journey</h2>
+
+    <h3>Part 2.3: Gaussian and Laplacian Stacks</h3>
+
+    <p>A Gaussian stack creates a stack of blurred images that, unlike a pyramid, are not downsampled, meaning each image in the stack is the same size. 
+        I implemented a Gaussian stack by creating a for loop (number of loops = maximum depth of the stack), increasing the Gaussian filter size at each
+        level of the stack and convolving the image with the Gaussian kernel. This creates a stack where each consecutive image becomes more and more blurred 
+        (last image contains lowest frequency information). 
+    </p>
+    
+    <img src="./media/apple_orange_gauss.png" alt="apple_orange_gauss" class="centered" width="30%">
+
+    <p>In a Laplacian stack, we want to create a stack of sub-band frequencies such that the first image in the stack has the highest frequency band information and the second to last image has 
+        the lowest frequency band information. To implement this, I took the Gaussian stack and subtracted neighboring images. The last image in the Laplacian stack cannot be involved in the subtraction 
+        in order to preserve the lowest frequency information in the image. This allows us to collapse the Laplacian pyramid and obtain the original image by summing together all images in the stack 
+        (this will be useful for splining in the next part).
+    </p>
+
+    <img src="./media/oraple_diagram.png" alt="oraple_diagram", class="centered" width="40%">
+
+    <h3>Part 2.4: Multiresolution Blending (a.k.a. the oraple!)</h3>
+
+    <p>Finally, to make a splined image, I created an image mask to select which parts of each image I wanted to keep. I then created three Laplacian stacks: one for the mask 
+        and one for each of the two images. At each of the stack levels, I multiplied the Laplacian image by the mask and add it to the other Laplacian image multiplied by (1-mask).
+        This operation created a single resulting image stack, whose images I summed together to produce the final hybrid image.
+    </p>
+
+    <aside class="note"> <b>Note</b>: For the canal image, pay attention to how the boat on the left was blended! </aside>
+
+    <aside class="note"> <b>Image Info</b>: The pictures of the dresses were taken at the Diane Von Furstenburg Exhibit (2025) at the Skirball in LA. 
+        The bottom images were taken at the Navigli canals in Milan in January, 2025. </aside>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/oraple.jpg" alt="oraple">
+            <div class="desc">Oraple</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/apple.jpeg" alt="apple">
+            <div class="desc">Apple</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/orange.jpeg" alt="orange">
+            <div class="desc">Orange</div>
+        </div>
+
+
+        <div class="gallery-item">
+            <img src="./media/dress_spline.jpg" alt="dress_spline">
+            <div class="desc">Dress Spline</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/demonstration_dress.jpg" alt="demo_dress">
+            <div class="desc">Demo Dress</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/travel_dress.jpg" alt="travel_dress">
+            <div class="desc">Travel Dress</div>
+        </div>
+
+
+        <div class="gallery-item">
+            <img src="./media/canal_spline.jpg" alt="canal_spline">
+            <div class="desc">Canal Spline</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/canal.jpg" alt="canal">
+            <div class="desc">Canal</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/bridge.jpg" alt="canal_with_bridge">
+            <div class="desc">Canal with Bridge</div>
+        </div>
+    </div>
+
+    <h3>Bells & Whistles</h3>
+
+    <p>Originally, my oraple wasn't very smooth. So, after being inspired by an <a href="https://edstem.org/us/courses/83238/discussion/6949912?comment=16275379">Ed post</a> 
+        I made my transition mask more of a smooth gradient rather than a binary shift from 0 to 1. This resulted in an overall smoother version of the oraple. I used this smooth 
+        transition for all of my splines above. 
+    </p>
+
+    <img src="./media/smooth_transition_oraple.png" alt="smooth_transition_oraple" class="centered" width="100%">
+
+    <p>I experimented with making either one of the two blended images grayscale. I especially like the dress example!</p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/dress_spline_demo_gray.jpg" alt="dress_spline_demo_gray">
+            <div class="desc">Dress spline with demo dress grayscale</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/dress_spline_travel_gray.jpg" alt="dress_spline_travel_gray">
+            <div class="desc">Dress spline with travel dress grayscale</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/canal_spline_bridge_gray.jpg" alt="canal_spline_bridge_gray">
+            <div class="desc">Canal spline with bridge canal grayscale</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/canal_spline_canal_gray.jpg" alt="canal_spline_canal_gray">
+            <div class="desc">Canal spline with canal grayscale</div>
+        </div>
+    </div>
+</body>
