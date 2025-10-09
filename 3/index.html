@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+
+    <meta charset="utf-8">
+    <title>MathJax Example</title>
+    <script>
+        window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+        svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;   
+            padding: 2rem;
+            line-height: 1.6;
+            font-family: "Georgia", serif; 
+            background-color: #f7e2aa;
+        }
+
+        img.centered {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 80%;        
+        height: auto;
+        }
+
+        h1 {
+        text-align: center; 
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #0d0501;
+        color: #633821;
+        padding-bottom: 0.5rem;
+        }
+
+        h2 {
+        text-align: center;  
+        font-size: 1.6rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h3 {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h4 {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #633821;
+        }
+
+        p {
+        text-align: left;  
+        margin: 1rem 0;
+        color: #2f2f2f;
+        }
+
+        ul {
+            color: #2f2f2f;
+        }
+
+        .note {
+        font-size: 0.9em;
+        color: #544949;
+        background: #fff7d6;
+        border-left: 4px solid #865c24;
+        padding: 8px 12px;
+        margin: 12px 0;
+        border-radius: 6px;
+        }
+
+        div.gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+        div.gallery-item {
+            margin: 5px;
+            width: 320px;
+            }
+
+        div.gallery-item img {
+            width: 100%;
+            height: auto;
+            }
+
+        div.gallery-item div.desc {
+            padding: 15px;
+            text-align: center;
+            }
+    </style>
+</head>
+
+<body>
+    <h1>[Auto]Stitching Photo Mosaics</h1>
+
+    <h2>With Manual Stitching</h2>
+
+    <h3>Part 1: Pictures to be Used</h3>
+
+    <p>For the simplified version of stitching implemented in this project, the captured pictures must be rotated around a single center of projection (a camera lens, for example),
+        in order to avoid translation transformations. The goal is to be able to "deproject" an image 1 back into a pencil of rays, then project that pencil of rays onto imag 2. This 
+        will eventually allow us to stitch together a mosaic (aka a panorama).
+    </p>
+
+    <p>The following are some pictures I captured to test out simple homography transformations.</p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/cup_front.jpg">
+            <img src="./media/cup_front.jpg" alt="cup_front">
+        </a>
+        <div class="desc">Front view of cup</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/cup_tilted.jpg">
+            <img src="./media/cup_tilted.jpg" alt="cup_titled">
+        </a>
+        <div class="desc">Side view of cup</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/bear_front.jpg">
+            <img src="./media/bear_front.jpg" alt="bear_front">
+        </a>
+        <div class="desc">Front view of bear painting</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/bear_tilt.jpg">
+            <img src="./media/bear_tilt.jpg" alt="bear_tilt">
+        </a>
+        <div class="desc">Side view of bear painting</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1.png">
+            <img src="./media/plant_1.png" alt="plant_1">
+        </a>
+        <div class="desc">Leftmost view of plants</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2.png">
+            <img src="./media/plant_2.png" alt="plant_2">
+        </a>
+        <div class="desc">Center view of plants</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_3.png">
+            <img src="./media/plant_3.png" alt="plant_3">
+        </a>
+        <div class="desc">Rightmost view of plants</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_1.png">
+            <img src="./media/arch_1.png" alt="arch_1">
+        </a>
+        <div class="desc">Leftmost view from Brown's</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_2.png">
+            <img src="./media/arch_2.png" alt="arch_2">
+        </a>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_3.png">
+            <img src="./media/arch_3.png" alt="arch_3">
+        </a>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_4.png">
+            <img src="./media/arch_4.png" alt="arch_4">
+        </a>
+        <div class="desc">Rightmost view from Brown's</div>
+        </div>
+    </div>
+
+    <h3>Part 2: Recover the Homographies</h3>
+
+    <p>Let us assume the transformation of points in one image: $p$, to points in another image: $p'$, can be written in matrix form as 
+        $p' = Hp$. Let $n$ be the number of points.</p>
+
+    <ul>
+        <li>$H$ is a 3 by 3 matrix where the bottom right entry is 1</li>
+        <li>$p$ is a 3 by n matrix where a single point looks like $[x, y, 1]$ </li>
+        <li>$p'$ is a 3 by n matrix where a single point looks like $[x', y', 1]$</li>
+    </ul>
+        
+    <p>To do this transformation, we must first convert our points from homogenous
+        coordinates to inhomogenous coordinates: $[x, y]$ then becomes $[x, y, 1]$, allowing $p$ to be a 3 by n matrix. However, when multiplying these inhomogenous coordinates by the 
+        matrix $H$, the resulting coordinates $p'$ will also be inhomogenous, and will be scaled by some factor $z$. To instead yield coordinates of 
+        the form $[x', y', 1]$, we must rewrite our matrix $p$ as such:  
+     </p>
+
+     <p>$$
+        p =
+        \begin{pmatrix}
+        x_{1} & y_{1} & 1 & 0 & 0 & 0 & -x_{1}x_{1}' -x_{1}'y_{1} \\
+        0 & 0 & 0 & x_{1} & y_{1} & 1 & -x_{1}y_{1}' -y_{1}'y_{1} \\
+        \end{pmatrix}
+        $$</p>
+
+    <p>in order to "divide" by the factor $z$ within the matrix multiplication itself.</p>
+
+    <p>The following are some examples of transformed correspondences between two images along with the homography matrix $H$ used to compute the transformation.</p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/cup_front_corres.png">
+            <img src="./media/cup_front_corres.png" alt="cup_front_corres">
+        </a>
+        <div class="desc">Front view correspondences</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/cup__tilt_corres.png">
+            <img src="./media/cup__tilt_corres.png" alt="cup__tilt_corres">
+        </a>
+        <div class="desc">Side view correspondences</div>
+        </div>
+    </div>
+
+    <p>$$
+        H_{cup} =
+        \begin{pmatrix}
+        0.687 & -0.0247 & 736  \\
+        -0.147 & 0.878 & 242  \\
+        -0.0000927 & -0.00000005 & 1  \\
+        \end{pmatrix}
+        $$</p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/bear_front_corres.png">
+            <img src="./media/bear_front_corres.png" alt="bear_front_corres">
+        </a>
+        <div class="desc">Front view correspondences</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/bear_tilt_corres.png">
+            <img src="./media/bear_tilt_corres.png" alt="bear_tilt_corres">
+        </a>
+        <div class="desc">Side view correspondences</div>
+        </div>
+    </div>
+
+    <p>$$
+        H_{bear} =
+        \begin{pmatrix}
+        0.28 & -0.021 & 913  \\
+        -0.0779 & 0.592 & 456  \\
+        -0.0000963 & 0.00000545 & 1  \\
+        \end{pmatrix}
+        $$</p>
+
+    <h3>Part 3: Warp the Images — Image Rectification</h3>
+
+    <p>Image rectification creates a transformation from one image plane to another by using the homography matrix mentioned in Part 2. 
+        In the examples below, I identified four corners of some object (the bear painting or the performance curtain, for example) and transformed them into a flat 
+        image plane with the same dimensions as the original image. 
+    </p>
+
+    <p>The key to this transformation is the concept of inverse warping as it decreases the number of potential holes (pixels without values) in the resulting image. To implement inverse warping, 
+        I first created a grid of coordinates for the desired image space I was transforming to and calculated 
+        the $H^{-1}$ matrix which, when multiplied by the grid coordinates, returns points in the original image that correspond to points in the coordinate grid
+        of the transformed/desired image space (the flat coordinate space). Effectively, inverse warping "colors" each pixel in the desired image space with the corresponding point from
+        the original image.
+    </p>
+
+    <p>
+        However, because transformation does not return discrete pixel values, one additional step is required to make sure our image coloring is smooth — interpolation. 
+        I implemented two interpolation methods: nearest neighbor and bilinear. Nearest neighbor rounds the corresponding point in the original image to the nearest pixel value and that value is 
+        then used to color the transformed image. Bilinear interpolation uses a weighted sum of the nearest four pixels in the original image to create a smoother representation of the pixel value 
+        in the transformed image.
+    </p>
+
+    <p>As you can see, the bilinear interpolation method results in much smoother, and more accurate pixel values, whereas the nearest neighbor interpolation 
+        produces a grainier image.
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/bear_tilt.jpg">
+            <img src="./media/bear_tilt.jpg" alt="bear_tilt">
+        </a>
+        <div class="desc">Original</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/rect_bear_neighbor.jpg">
+            <img src="./media/rect_bear_neighbor.jpg" alt="rect_bear_neighbor">
+        </a>
+        <div class="desc">Rectified (nearest neighbor)</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/rect_bear_bilinear.jpg">
+            <img src="./media/rect_bear_bilinear.jpg" alt="rect_bear_bilinear">
+        </a>
+        <div class="desc">Rectified (bilinear)</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/zellerbach_corners.png">
+            <img src="./media/zellerbach_corners.png" alt="zellerbach_corners">
+        </a>
+        <div class="desc">Original</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/rect_zellerbach_neighbor.png">
+            <img src="./media/rect_zellerbach_neighbor.png" alt="rect_zellerbach_neighbor">
+        </a>
+        <div class="desc">Rectified (nearest neighbor)</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/rect_zellerbach_bilinear.png">
+            <img src="./media/rect_zellerbach_bilinear.png" alt="rect_zellerbach_bilinear">
+        </a>
+        <div class="desc">Rectified (bilinear)</div>
+        </div>
+    </div>
+
+    <h3>Part 4: Blend the Images into a Mosaic</h3>
+
+    <p>To blend images into a mosaic, I chose to warp all my images to a single image that I designated as the "anchor". 
+        In contrast to Part 3, each image must be warped into the anchor image space rather than some flat image space like so:
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/warped_left_plant.png">
+            <img src="./media/warped_left_plant.png" alt="warped_left_plant">
+        </a>
+        <div class="desc">Leftmost view warped to center</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2.png">
+            <img src="./media/plant_2.png" alt="plant_2">
+        </a>
+        <div class="desc">Center (anchor)</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/warped_right_plant.png">
+            <img src="./media/warped_right_plant.png" alt="warped_right_plant">
+        </a>
+        <div class="desc">Rightmost view warped to center</div>
+        </div>
+    </div>
+
+    <p>Then the tricky part is to pad the anchor and warped images such that both are the same dimensions and can be added together.
+        I first calculated the corners of the warped image in the reference image space (marked as red x's in the images below). I then 
+        calculated the minimum and maximum rows and columns to get the correct padding for both images such that their sizes matched. The 
+        padding automatically results in correct alignment since numpy's pad function requires input for top, bottom, right, and left padding.
+        The paddeding can be seen with the dashed blue line (the rest of the image is transparent because of the alpha channel).
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/warped_left_plant_pad.png">
+            <img src="./media/warped_left_plant_pad.png" alt="warped_left_plant_pad">
+        </a>
+        <div class="desc">Leftmost view padded to same dimensions</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/center_plant_pad.png">
+            <img src="./media/center_plant_pad.png" alt="center_plant_pad">
+        </a>
+        <div class="desc">Center (anchor) padded to same dimensions</div>
+        </div>
+    </div>
+
+    <p>Then, to blend the two images together, I used a normalized weighted sum of the alphas for each image. Let $i$ be the number of images in the mosaic
+        (which is 2 for now) and let $A_p$ be the alpha at pixel $p$ in the stitched image.
+        $$ A_{p} = \sum_{\forall i} \alpha_i$$
+        $$C_p = \frac{1}{A_p} \sum_{\forall i} img_i * \alpha_i$$
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_mosaic_artifacts_left.png">
+            <img src="./media/plant_mosaic_artifacts_left.png" alt="plant_mosaic_artifacts_left">
+        </a>
+        <div class="desc">Leftmost + center image stitch</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_mosaic_artifacts_right.png">
+            <img src="./media/plant_mosaic_artifacts_right.png" alt="plant_mosaic_artifacts_right">
+        </a>
+        <div class="desc">Center + right image stitch</div>
+        </div>
+    </div>
+
+    <p>So far, there are edge artifacts in all of my stitches, which I plan to fix by doing alpha smoothing using a Laplacian pyramid.</p>
+
+</body>
