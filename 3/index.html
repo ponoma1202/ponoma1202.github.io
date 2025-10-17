@@ -95,12 +95,69 @@
         div.gallery-item img {
             width: 100%;
             height: auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */   
             }
 
         div.gallery-item div.desc {
             padding: 15px;
             text-align: center;
             }
+
+        div.gallery-balanced {
+            display: flex;
+            justify-content: center;    
+            align-items: flex-start;    
+            gap: 40px;                   
+            flex-wrap: wrap;             
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        div.gallery-balanced .gallery-item {
+            display: flex;
+            flex-direction: column;      
+            align-items: center;         
+        }
+
+        div.gallery-balanced img {
+            height: 300px;              
+            width: auto;                       
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */
+        }
+
+        div.gallery-balanced .desc {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 12px;
+            max-width: 300px;            
+        }
+
+        div.gallery-equal {
+            display: flex;
+            justify-content: center;      
+            align-items: flex-start;      
+            flex-wrap: wrap;             
+            gap: 40px;                    
+            margin: 30px auto;
+            max-width: 95%;               
+            box-sizing: border-box;
+        }
+
+        div.gallery-equal .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 45%;                
+            min-width: 300px;            
+            max-width: 600px;            
+        }
+
+        div.gallery-equal img {
+            width: 100%;                  
+            height: auto;    
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */             
+        }
+
     </style>
 </head>
 
@@ -384,10 +441,10 @@
         I first calculated the corners of the warped image in the reference image space (marked as red x's in the images below). I then 
         calculated the minimum and maximum rows and columns to get the correct padding for both images such that their sizes matched. The 
         padding automatically results in correct alignment since numpy's pad function requires input for top, bottom, right, and left padding.
-        The paddeding can be seen with the dashed blue line.
+        The padding can be seen with the dashed blue line.
     </p>
 
-    <div class="gallery">
+    <div class="gallery-equal">
         <div class="gallery-item">
             <a target="_blank" href="./media/warped_left_plant_pad.jpg">
             <img src="./media/warped_left_plant_pad.jpg" alt="warped_left_plant_pad">
@@ -402,6 +459,9 @@
         <div class="desc">Center (anchor) padded to same dimensions</div>
         </div>
     </div>
+    <p>I noticed I had off-by-one issues when trying to pad both the anchor image and the warped image, so I just padded the anchor, then used
+    the padded anchor image dimensions to pad the warped image.
+    </p>
 
     <p>Then, to blend the two images together, I used a normalized weighted sum of the alphas for each image. Let $i$ be the number of images in the mosaic
         (which is 2 for now) and let $A_p$ be the alpha at pixel $p$ in the stitched image.
@@ -409,7 +469,7 @@
         $$C_p = \frac{1}{A_p} \sum_{\forall i} img_i * \alpha_i$$
     </p>
 
-    <div class="gallery">
+    <div class="gallery-equal">
         <div class="gallery-item">
             <a target="_blank" href="./media/plant_mosaic_artifacts_left.jpg">
             <img src="./media/plant_mosaic_artifacts_left.jpg" alt="plant_mosaic_artifacts_left">
@@ -424,9 +484,241 @@
         <div class="desc">Center + right image stitch</div>
         </div>
     </div>
+ 
+    <h2>Autostitching!!!</h2>
 
-    <p>So far, there are edge artifacts in all of my stitches, which I plan to fix by doing alpha smoothing using a Laplacian pyramid.</p>
+    <h3>Part 1: Harris Corner Detection</h3>
+
+    <p>Now that we're trying to do autostitching, the main issue is how do we find correspondences? When doing manual correspondences,
+        the easiest features we tend to select are corners. So, let's try to find some corners!
+    </p>
+
+    <p>Using a skimage's Harris Corner algorithm, I found quite a few corner images in both of the photos I wanted to align.</p>
+
+    <aside class="note"> <b>Note</b>: I set the "minimum_distance" parameter to be 50 pixels between each harris corner and got ~800-900 points. For a minimum_distance=1, 
+    I got ~20-30k points 😱. </aside>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_harris_corners.jpg">
+            <img src="./media/plant_1_harris_corners.jpg" alt="plant_1_harris_corners">
+        </a>
+        <div class="desc">Leftmost plant harris corners</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2_harris_corners.jpg">
+            <img src="./media/plant_2_harris_corners.jpg" alt="plant_2_harris_corners">
+        </a>
+        <div class="desc">Center plant harris corners</div>
+        </div>
+    </div>
+
+    <p>Just using Harris corners doesn't guarantee we have a good distribution of corner points.</p>
+
+    <p>Adaptive Non-Maximal Suppression (ANMS) sorts all corners by their corner strength (Harris value) and distance away from each other. For each interest point $i$ from the 
+        harris_corner function, we calculate the Euclidean distance of each corner from every other Harris corner: $|x_i - x_j|$. Let the corner strength of interest point $i$ be $f_i$. 
+        We then take the closest corner $j$ whose weighted strength of $0.9 * f_j$ is greater than the strength of the current point $f_i$. Let the distance between two such points $|x_i - x_j|$ be called $r_i$, 
+        the suppression radius of Harris corner $i$. We then take the first 500 points with the greatest suppression radii. For those who enjoy math, here is the full optimization equation that was taken 
+        from the <a href="https://ieeexplore.ieee.org/document/1467310">following paper</a>:
+    </p>
+
+    <p>
+        $$
+        \hspace{0pt}
+        \begin{aligned}
+        r_i &= \min_j |x_i - x_j| \\
+        \text{s.t. } & f(x_i) \lt c_{\text{robust}} f(x_j); x_j \in I
+        \end{aligned}
+        $$
+        </p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_anms.jpg">
+            <img src="./media/plant_1_anms.jpg" alt="plant_1_anms">
+        </a>
+        <div class="desc">Leftmost plant 500 ANMS corners</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2_anms.jpg">
+            <img src="./media/plant_2_anms.jpg" alt="plant_2_anms">
+        </a>
+        <div class="desc">Center plant 500 ANMS corners</div>
+        </div>
+    </div>
+
+    <h3>Part 2: Feature Descriptor Extraction</h3>
+
+    <p>Ok we found some corners. Yay! But how do we match our corners across two images? — We need to label them!</p>
+
+    <p>To match our features, we take a 40x40 patch with the Harris corner in the center. Then, we sample every 5th point from the patch to get an 8x8 feature label. The point of downsampling 
+        is to make our feature matching algorithm later more robust and not get too focused on high frequency details. 
+    </p>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_feature_5.jpg">
+            <img src="./media/plant_1_feature_5.jpg" alt="plant_1_feature_5">
+        </a>
+        <div class="desc">Leftmost plant feature location</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/feature_5.jpg">
+            <img src="./media/feature_5.jpg" alt="feature_5">
+        </a>
+        <div class="desc">Extracted feature</div>
+        </div>
+    </div>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_feature_6.jpg">
+            <img src="./media/plant_1_feature_6.jpg" alt="plant_1_feature_6">
+        </a>
+        <div class="desc">Leftmost plant feature location</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/feature_6.jpg">
+            <img src="./media/feature_6.jpg" alt="feature_5">
+        </a>
+        <div class="desc">Extracted feature</div>
+        </div>
+    </div>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_feature_112.jpg">
+            <img src="./media/plant_1_feature_112.jpg" alt="plant_1_feature_112">
+        </a>
+        <div class="desc">Leftmost plant feature location</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/feature_112.jpg">
+            <img src="./media/feature_112.jpg" alt="feature_112">
+        </a>
+        <div class="desc">Extracted feature</div>
+        </div>
+    </div>
+
+    <h3>Part 3: Feature Matching</h3>
+
+    <p>To match up our correspondences, we can use sklearn's NearestNeighbor algorithm to find descriptors that are closest to each other in feature space. However, what if a descriptor in 
+        one image matches with two or more descriptors in image 2? — Let's use the <em>two</em> closest neighbors to sift out some imposter matches. If the distance between the two closest candidates is large,
+        that means the nearest neighbor is most likely going to be the correct match. If, however, the two nearest neighbors are both close in distance, then probably neither of them is a match and our poor descriptor
+        just wasn't descriptive enough. </p>
+
+    <p>By using this ratio of the distance of the nearest neighbor divided by the distance of the second nearest neighbor, we get some promising results.</p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_1_2_match.jpg">
+            <img src="./media/plant_1_2_match.jpg" alt="plant_1_2_match">
+        </a>
+        <div class="desc">Matched points in leftmost plant image</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2_1_match.jpg">
+            <img src="./media/plant_2_1_match.jpg" alt="plant_2_1_match">
+        </a>
+        <div class="desc">Matched points in center plant image</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_2_3_match.jpg">
+            <img src="./media/plant_2_3_match.jpg" alt="plant_2_3_match">
+        </a>
+        <div class="desc">Matched points in center plant image</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_3_2_match.jpg">
+            <img src="./media/plant_3_2_match.jpg" alt="plant_3_2_match">
+        </a>
+        <div class="desc">Matched points in right plant image</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch1_match.jpg">
+            <img src="./media/arch1_match.jpg" alt="arch1_match">
+        </a>
+        <div class="desc">Matched points in left architecture image</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch2_match.jpg">
+            <img src="./media/arch2_match.jpg" alt="arch2_match">
+        </a>
+        <div class="desc">Matched points in right architecture image</div>
+        </div>
+    </div>
 
 
+
+    <h3>Part 4: RANSAC for Robust Homography</h3>
+
+    <p>But alas! Even with feature matching, we aren't always guaranteed to have good correspondences. To make our homography (and eventual mosaic stitching) more accurate, we need something more robust.</p>
+
+    <p>Random Sample Concensus (RANSAC) randomly chooses a handful of the matched features from the previous part and calculates a homography. Using Euclidean distance, RANSAC then quantifies the error between the resulting homography and the correspondences from the image we are 
+        projecting to (our ground truth), and counts the number of "good" matches (inliers) based on some threshold. The operation is repeated for a number of iterations and returns the homography matrix and features that 
+        correspond to the projection with the greatest number of "good" correspondences. Essentially, the algorithm "votes" for which correspondences are good enough to use for the image projection. Finally, we use the resulting homography matrix to automatically stitch our mosaic.
+    </p>
+
+     <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_mosaic_artifacts_left.jpg">
+            <img src="./media/plant_mosaic_artifacts_left.jpg" alt="plant_mosaic_artifacts_left">
+        </a>
+        <div class="desc">Manual correspondences mosaic</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/left_plant_ransac_mosaic.jpg">
+            <img src="./media/left_plant_ransac_mosaic.jpg" alt="left_plant_ransac_mosaic">
+        </a>
+        <div class="desc">RANSAC autostitched mosaic</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/plant_mosaic_artifacts_right.jpg">
+            <img src="./media/plant_mosaic_artifacts_right.jpg" alt="plant_mosaic_artifacts_right">
+        </a>
+        <div class="desc">Manual correspondences mosaic</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/right_plant_ransac_mosaic.jpg">
+            <img src="./media/right_plant_ransac_mosaic.jpg" alt="right_plant_ransac_mosaic">
+        </a>
+        <div class="desc">RANSAC autostitched mosaic</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_manual_mosaic.jpg">
+            <img src="./media/arch_manual_mosaic.jpg" alt="arch_manual_mosaic">
+        </a>
+        <div class="desc">Manual correspondences mosaic</div>
+        </div>
+
+        <div class="gallery-item">
+            <a target="_blank" href="./media/arch_ransac_mosaic.jpg">
+            <img src="./media/arch_ransac_mosaic.jpg" alt="arch_ransac_mosaic">
+        </a>
+        <div class="desc">RANSAC autostitched mosaic</div>
+        </div>
+    </div>
 
 </body>
