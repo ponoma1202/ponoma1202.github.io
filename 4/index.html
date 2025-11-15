@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+
+    <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;   
+            padding: 2rem;
+            line-height: 1.6;
+            font-family: "Georgia", serif; 
+            background-color: #f7e2aa;
+        }
+
+        img.centered_smaller {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 30%;        
+        height: auto;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        img.centered_bigger {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 60%;        
+        height: auto;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+        text-align: center; 
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #0d0501;
+        color: #633821;
+        padding-bottom: 0.5rem;
+        }
+
+        h2 {
+        text-align: center;  
+        font-size: 1.6rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h3 {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h4 {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #633821;
+        }
+
+        p {
+        text-align: left;  
+        margin: 1rem 0;
+        color: #2f2f2f;
+        }
+
+        ul {
+            color: #2f2f2f;
+        }
+
+        b {
+            color: #633821;
+        }
+
+        .param-card {
+            padding: 1rem 1.2rem;
+            background: #fff7d6;
+            border-radius: 8px;
+            border-left: 6px solid #865c24;
+            margin: 1.5rem 0;
+        }
+
+        .param-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #633821;
+            font-size: 1.1rem;
+        }
+
+        .param-card ul {
+            padding-left: 1.3rem;
+            margin: 0;
+            list-style: disc;
+            color: #633821;
+            line-height: 1.4;
+        }
+
+        .param-card li {
+            margin-bottom: 0.3rem;
+        }
+
+        .note {
+        font-size: 0.9em;
+        color: #633821;
+        background: #fff7d6;
+        border-left: 4px solid #865c24;
+        padding: 8px 12px;
+        margin: 12px 0;
+        border-radius: 6px;
+        }
+
+        div.gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+        div.gallery-item {
+            margin: 5px;
+            width: 320px;
+            }
+
+        div.gallery-item img {
+            width: 100%;
+            height: auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */   
+            }
+
+        div.gallery-item div.desc {
+            padding: 15px;
+            text-align: center;
+            }
+
+        div.gallery-balanced {
+            display: flex;
+            justify-content: center;    
+            align-items: flex-start;    
+            gap: 40px;                   
+            flex-wrap: wrap;             
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        div.gallery-balanced .gallery-item {
+            display: flex;
+            flex-direction: column;      
+            align-items: center;         
+        }
+
+        div.gallery-balanced img {
+            height: 300px;              
+            width: auto;                       
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */
+        }
+
+        div.gallery-balanced .desc {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 12px;
+            max-width: 300px;            
+        }
+
+        div.gallery-equal {
+            display: flex;
+            justify-content: center;      
+            align-items: flex-start;      
+            flex-wrap: wrap;             
+            gap: 40px;                    
+            margin: 30px auto;
+            max-width: 70%;               
+            box-sizing: border-box;
+        }
+
+        div.gallery-equal .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 45%;                
+            min-width: 300px;            
+            max-width: 600px;            
+        }
+
+        div.gallery-equal img {
+            width: 100%;                  
+            height: auto;    
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */             
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Neural Radiance Fields</h1>
+
+    <h2>Part 0: Calibrating Your Camera and Capturing a 3D Scan</h2>
+
+    <p>To calibrate my camera, I first printed out a page with six 4x4 ArUco tags and took around 40 images of the page from different angles. Then, I used the 
+        cv2 library to detect the corners of the tags in each image and calibrate the intrinsics and distortion coefficients for my camera (focal length, optical center, etc). 
+    </p>
+
+    <img src="./media/aruco_tag.jpg" alt="aruco_tag" class="centered_smaller">
+
+    <p>I then cut out one of the AruCo tags, placed it next to my chosen object (a Swedish horse) and took around 50 images of the object from different angles. I used
+        these images to estimate the position and orientation (camera pose) of each image of my object using the Perspective-n-Point (PnP) problem. The goal of this method is to
+        find the extrinsic camera matrix, which models how a camera projects 3D world coordinates into a 2D image. The cv2.PnP() function returns a rotation and translation vector, which
+        compose the camera extrinsic matrix.
+    </p>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/swedish_horse_aruco.jpg" alt="swedish_horse_aruco">
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/swedish_horse_aruco_2.jpg" alt="swedish_horse_aruco_2">
+        </div>
+    </div>
+
+    <p>To visualize my camera pose estimates, I used viser to visualize my camera frustums (basically the camera's field of view). </p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/viser_view_1.jpg" alt="viser_view_1">
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/viser_view_2.jpg" alt="viser_view_2">
+        </div>
+    </div>
+
+    <p>Finally, I removed lens distortion from my 50 object images by using cv2's undistort function, and created my own dataset.</p>
+
+    <img src="./media/horse_undistorted.jpg" alt="horse_undistorted" style="display: block; margin: 0 auto;">
+
+    <h2>Part 1: Fit a Neural Field to a 2D Image</h2>
+
+    <p>As a percursor to doing NeRF in 3D, I implemented a Neural Field (since radiance does not exist in 2D), which maps 2D coordinates to a 3D RGB representation. 
+        The architecture of the Neural Field is essentially a Multilayer Perceptron (MLP) as follows:
+    </p>
+
+    <img src="./media/mlp_img.jpg" alt="mlp_img" class="centered_bigger">
+
+    <p>Where the PE layer is a positional encoding that applies several sinusoidal functions to the input. This is used to map continuous input coordinates to a higher dimensional 
+        space such that the MLP will be able to represent the high frequency information present in the original image. 
+    </p>
+
+    <p>Small note: Since I was working on my own computer, I randomly sampled N pixels from the image at every iteration to not overload the GPU. As a result, if you zoom in really close
+        into the Iter 2000 image, you can see little black dots where the image was not yet sampled. 
+    </p>
+
+    <aside class="note param-card"> <b>Model parameters</b>: 
+    <ul> 
+        <li>L = 10</li>
+        <li>N = 10000 (number of sampled points from image at each iteration)</li>
+        <li>number of iterations = 2000</li>
+        <li>MLP structure: first three layers have 256 features, last one has 3</li>
+        <li>learning rate = 1e-2</li>
+    </ul> </aside>
+
+    <div class="gallery">
+         <div class="gallery-item">
+            <img src="./media/plain_reconstruction_iter_1.jpg" alt="plain_fox_iter_0">
+        </a>
+        <div class="desc">Iteration 0</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_reconstruction_iter_500.jpg" alt="plain_fox_iter_500">
+        </a>
+        <div class="desc">Iteration 500</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_reconstruction_iter_1000.jpg" alt="plain_fox_iter_1000">
+        </a>
+        <div class="desc">Iteration 1000</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_reconstruction_iter_1500.jpg" alt="plain_fox_iter_1500">
+        </a>
+        <div class="desc">Iteration 1500</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_reconstruction_iter_2000.jpg" alt="plain_fox_iter_2000">
+        </a>
+        <div class="desc">Iteration 2000</div>
+        </div>
+    </div>
+
+    <p>The reconstruction from iterations 1000 and on gets smoother, but the low frequency information was reconstructed between iterations 500-1000.
+        The next image I used was larger than the fox image, so I sampled more points per iteration.
+    </p>
+
+    <aside class="note param-card"> <b>Model parameters</b>: 
+    <ul> 
+        <li>L = 10</li>
+        <li><b style="color:rgb(213, 37, 37);">N = 30000 </b> </li>
+        <li>number of iterations = 2000</li>
+        <li>MLP structure: first three layers have 256 features, last one has 3</li>
+        <li>learning rate = 1e-2</li>
+    </ul> </aside>
+
+    <div class="gallery">
+         <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_1.jpg" alt="plain_horse_iter_0">
+        </a>
+        <div class="desc">Iteration 0</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_500.jpg" alt="plain_horse_iter_500">
+        </a>
+        <div class="desc">Iteration 500</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_1000.jpg" alt="plain_horse_iter_1000">
+        </a>
+        <div class="desc">Iteration 1000</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_1500.jpg" alt="plain_horse_iter_1500">
+        </a>
+        <div class="desc">Iteration 1500</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_2000.jpg" alt="plain_horse_iter_2000">
+        </a>
+        <div class="desc">Iteration 2000</div>
+        </div>
+    </div>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/plain_horse_reconstruction_iter_2000.jpg" alt="plain_horse_iter_2000">
+            <div class="desc">Final horse image representation</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/psnr_horse.jpg" alt="psnr_horse">
+            <div class="desc">PSNR for final horse image</div>
+        </div>
+    </div>
+
+    <p>I experimented with some of the parameters such as L (highest frequency level) and the width of the architecture (number of features in each linear layer). 
+        Lower values of L resulted in blurrier images, where the high frequency information was lost. Smaller architecture width caused granier images, meaning that a larger
+        width results in a smoother image. 
+    </p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/horse_L=2_width=64.jpg" alt="horse_L=2_width=64">
+        </a>
+        <div class="desc">L=2 and width=64</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/horse_L=10_width=64.jpg" alt="orse_L=10_width=64">
+        </a>
+        <div class="desc">L=10 and width=64</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/horse_L=2_width=256.jpg" alt="horse_L=2_width=256">
+        </a>
+        <div class="desc">L=2 and width=256</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/horse_L=10_width=256.jpg" alt="orse_L=10_width=256">
+        </a>
+        <div class="desc">L=10 and width=256</div>
+        </div>
+    </div>
+
+    <h2>Part 2: Fit a Neural Radiance Field from Multi-view Images</h2>
+
+    <h3>Part 2.1: Create Rays from Cameras </h3>
+
+    <p>To render a 3D radiance scene from several cameras, we must first be able to translate between pixel → camera → world for every camera in the scene. </p>
+
+    <p><b>Camera → world</b> requires a camera to world transformation matrix, which consists of a rotation and translation component, and we also need 
+        non-homogenous xyz camera coordinates (4D). We then do a matrix multiplication of the c2w matrix multiplied by the xyz camera coordinates (x_c) to get xyz world coordinates 
+        (transformed back into homogenous coordinates). For NeRF training, I implemented a camera to world transformation function that handled batch sizes, meaning that broadcasting needed to be correct 
+        if a stack of c2ws and x_cs were passed into the function. For example, pytorch usually defines vectors in row form rather than columns, so instead of multiplying 
+        c2w @ x_c, I had to do (c2w @ x_c.T).T. 
+    </p>
+
+    <p><b>Pixel → camera</b> needs the intrinsic matrix K (encodes the camera's focal length and principal point) and 3D points in the pixel space (2D pixel point that is 
+        converted to non-homogenous coordinates). K transforms camera → pixel coordinates, so to go from pixel → camera, we invert the K matrix and multiply by the 3D pixel points uv. 
+    </p>
+
+    <p><b>Pixel → ray</b> To later obtain a final color for the NeRF image, we need to draw a ray from a pixel in the image. A ray can be defined by an origin point r_o and a direction r_d, 
+        where both are 3D points. r_o is just the translation vector from the given c2w matrix. But to get the direction vector r_d, we first use the previous two functions to go from a given 
+        pixel point uv → camera → world and get a 3D world coordinate. The world coordinate is then centered around the origin point (subtract r_o from the world coordinate) and normalized to get r_d. 
+    </p>
+
+    <h3>Part 2.2: Sampling </h3>
+
+    <p> <b>Sampling rays from cameras</b> helps render the 3D scene in NeRF. To sample N rays from different locations of different images, I first calculated the total number of pixels
+        I had across all of my training images (training image vector was of size B x H x W x 3): P = batches * H * W. I then sampled N random integers in the range of (0, P) and extracted the index and pixel 
+        coordinates the integers corresponded to. Then, I used my pixel_to_ray function from part 2.1 to find the origin point and ray direction for each sampled ray. I also found the RGB pixel values corresponding 
+        to the points at the ray, which will be used for volume rendering and loss calculation later. 
+    </p>
+
+    <p> <b>Sampling along the rays</b> will be used for volumetric rendering later to determine the color of the 3D point in the object the ray represents. To create a set of uniformly spaced samples, I used 
+        t = torch.linspace(near, far, num_samples) where the length between each sample step_size = (far - near) / num_samples. To prevent overfitting, I added perturbations in the range of (0, step_size) to the 
+        generated samples t. 
+    </p>
+
+    <h3>Part 2.3: Putting the Dataloading All Together </h3>
+
+    <p>I then created a dataloader that included all of the above implementations as functions of the dataloader class. The dataloader then returned the origin and direction vectors of the sampled rays as well as the 
+        RGB pixel values corresponding to the locations from which the rays were drawn. The following is a visualization of 100 rays with 32 points sampled from each ray:
+    </p>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/viser_tractor_rays.png" alt="viser_tractor_rays">
+            <div class="desc">100 sampled rays, 32 points sampled from each ray</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/rays_in_one_camera.jpg" alt="rays_in_one_camera">
+            <div class="desc">100 rays sampled from 1 camera, 32 points from each ray</div>
+        </div>
+    </div>
+
+    <h3>Part 2.4: Neural Radiance Field </h3>
+
+    <p>I implemented the NeRF architecture as depicted below. The inputs are 3D world coordinates and 3D direction vectors. Note that there are now two positional encodings: the positional encoding parameter L for the world coordinates 
+        is different than the L for the direction vectors (around L_coords=10, L_coords=4). The architecture here is much deeper than the MLP for the 2D image and it outputs a density scalar and RGB coordinates.
+    </p>
+
+    <img src="./media/mlp_nerf.png" alt="mlp_nerf" class="centered_bigger">
+
+    <h3>Part 2.5: Volume Rendering </h3>
+
+    <p>To determine the final color of the point in the 3D scene, I used the density and color outputs from the network, as well as the step_size (distance between sampled points along the ray). The resulting color is a summation of the product of (the 
+        probability of the point terminating at sample i) * (probability of not terminating before sample i) * (color of the pixel). 
+    </p>
+
+    <p>To train the NeRF, I first sampled N rays from all the cameras to get the origin + direction vectors and the RGB coordinates. Then, I sampled points along those rays and inputted the points and direction vectors into the model. 
+        I rendered the final colors using the density and RGBs outputted by the model and compared the final colors to the colors I got from sampling N rays. Then I zeroed out the optimizer gradients, backpropogated the loss, and stepped 
+        the optimizer. I repeated this process for validation without tracking the gradients. </p>
+
+    <p>On the tractor dataset from the original NeRF paper, I used the following parameters:</p>
+
+    <aside class="note param-card"> 
+        <h4>Model Parameters</h4>
+
+        <ul>
+            <li>
+                <strong>Architecture Parameters</strong>
+                <ul>
+                    <li>L_coords = 10</li>
+                    <li>L_ray = 4</li>
+                    <li>layer_width = 256</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Ray Sampling Parameters</strong>
+                <ul>
+                    <li>num_rays = 10,000</li>
+                    <li>num_points_along_ray = 64</li>
+                    <li>near = 2.0</li>
+                    <li>far = 6.0</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Training Hyperparameters</strong>
+                <ul>
+                    <li>num_iterations = 2,000</li>
+                    <li>learning_rate = 5e-4</li>
+                    <li>optimizer = Adam</li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="note"> <b>Validation PSNR</b>: 24.39 <br> <b>Training time</b>: ~23 min</aside>
+    
+    <aside class="note"> <b>Small note</b>: I kept track of the PSNR for every 50 iterations and forgot to multiply the x axis by 50 for all of the PSNR graphs.</aside>
+
+    <div class="gallery">
+         <div class="gallery-item">
+            <img src="./media/given_1.jpg" alt="given_1">
+        </a>
+        <div class="desc">Iteration 0</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/given_400.jpg" alt="given_400">
+        </a>
+        <div class="desc">Iteration 400</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/given_800.jpg" alt="given_800">
+        </a>
+        <div class="desc">Iteration 800</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/given_1200.jpg" alt="given_1200">
+        </a>
+        <div class="desc">Iteration 1200</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/given_1600.jpg" alt="given_1600">
+        </a>
+        <div class="desc">Iteration 1600</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/given_2000.jpg" alt="given_2000">
+        </a>
+        <div class="desc">Iteration 2000</div>
+        </div>
+
+    </div>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/tractor_test.gif" alt="tractor_test_gif">
+            <div class="desc">Novel view of tractor dataset</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/train_psnr_tractor.jpg" alt="train_psnr_tractor">
+            <div class="desc">Training PSNR for tractor</div>
+        </div>
+    </div>
+
+    <p>Increasing the number of points sampled along the ray and increasing the number of rays gave richer details about the tractor. However, it did increase the training time 
+        significantly. I noticed that increasing L_coord, L_ray, or layer_width didn't increase PSNR that much, so I mostly modified the ray sampling parameters. Increasing the number of 
+        iterations also allowed the model to become more "refined."
+    </p>
+
+    <p>I also trained on the staff's "lafufu dataset" as a diagnostic, using the following parameters:</p>
+
+    <aside class="note param-card"> 
+        <h4>Model Parameters</h4>
+
+        <ul>
+            <li>
+                <strong>Architecture Parameters</strong>
+                <ul>
+                    <li>L_coords = 10</li>
+                    <li>L_ray = 4</li>
+                    <li>layer_width = 256</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Ray Sampling Parameters</strong>
+                <ul>
+                    <li>num_rays = 1,000</li>
+                    <li>num_points_along_ray = 32</li>
+                    <li>near = 0.02</li>
+                    <li>far = 0.5</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Training Hyperparameters</strong>
+                <ul>
+                    <li>num_iterations = 2,000</li>
+                    <li>learning_rate = 5e-4</li>
+                    <li>optimizer = Adam</li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="note"> <b>Validation PSNR</b>: 17.1 <br> <b>Training time</b>: ~3 min</aside>
+
+    <p>I decreased the number of rays and number of points along the ray to train faster since I only wanted to make sure that the 
+        results looked generally correct.
+    </p>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/lafufu_training.gif" alt="lafufu_training">
+            <div class="desc">Training view of lafufu dataset</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/train_psnr_lafufu.jpg" alt="train_psnr_lafufu">
+            <div class="desc">Training PSNR for lafufu</div>
+        </div>
+    </div>
+
+    <h3>On my own dataset</h3>
+
+    <div class="gallery-balanced">
+        <div class="gallery-item">
+            <img src="./media/horse_test.gif" alt="horse_test">
+            <div class="desc">Novel view of horse dataset</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/train_psnr_horse.jpg" alt="train_psnr_horse">
+            <div class="desc">Training PSNR for horse</div>
+        </div>
+    </div>
+
+    <aside class="note param-card"> 
+        <h4>Model Parameters</h4>
+
+        <ul>
+            <li>
+                <strong>Architecture Parameters</strong>
+                <ul>
+                    <li>L_coords = 12</li>
+                    <li>L_ray = 6</li>
+                    <li>layer_width = 384</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Ray Sampling Parameters</strong>
+                <ul>
+                    <li>num_rays = 1,000</li>
+                    <li>num_points_along_ray = 32</li>
+                    <li>near = 0.02</li>
+                    <li>far = 1.2</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Training Hyperparameters</strong>
+                <ul>
+                    <li>num_iterations = 2,000</li>
+                    <li>learning_rate = 5e-4</li>
+                    <li>optimizer = Adam</li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="note"> <b>Validation PSNR</b>: 9.3 <br> <b>Training time</b>: ~3 min</aside>
+
+    <p>I tried many different values for the near and far parameters, but nothing helped. The PSNR remained around 9-10 dB. Increasing the number of rays and the points along
+        the rays didn't help since my model didn't even capture the low frequency information of the scene. I also tried tuning the learning rate and increasing the number of iterations,
+        but that also did not help. 
+    </p>
+
+
+</body>
