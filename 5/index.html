@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+
+    <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            max-width: 1000px;
+            margin: 0 auto;   
+            padding: 2rem;
+            line-height: 1.6;
+            font-family: "Georgia", serif; 
+            background-color: #f7e2aa;
+        }
+
+        img.centered_smaller {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 30%;        
+        height: auto;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        img.centered_bigger {
+        display: block;        
+        margin: 1.5rem auto;    
+        max-width: 80%;        
+        height: auto;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        .img-container {
+            text-align: center;
+            margin: 2rem auto;
+        }
+
+        /* The caption style */
+        .caption {
+            margin-top: 10px;       
+            font-size: 1rem;
+            font-family: "Georgia", serif;
+        }
+
+        img.centered_huge {
+            display: block;
+            margin: 1.5rem auto;
+            width: 30%;     
+            height: auto;     
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+        text-align: center; 
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #0d0501;
+        color: #633821;
+        padding-bottom: 0.5rem;
+        }
+
+        h2 {
+        text-align: center;  
+        font-size: 1.6rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h3 {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        color: #633821;
+        }
+
+        h4 {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #633821;
+        }
+
+        p {
+        text-align: left;  
+        margin: 1rem 0;
+        color: #2f2f2f;
+        }
+
+        ul {
+            color: #2f2f2f;
+        }
+
+        b {
+            color: #633821;
+        }
+
+        .param-card {
+            padding: 1rem 1.2rem;
+            background: #fff7d6;
+            border-radius: 8px;
+            border-left: 6px solid #865c24;
+            margin: 1.5rem 0;
+        }
+
+        .param-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #633821;
+            font-size: 1.1rem;
+        }
+
+        .param-card ul {
+            padding-left: 1.3rem;
+            margin: 0;
+            list-style: disc;
+            color: #633821;
+            line-height: 1.4;
+        }
+
+        .param-card li {
+            margin-bottom: 0.3rem;
+        }
+
+        .note {
+        font-size: 0.9em;
+        color: #633821;
+        background: #fff7d6;
+        border-left: 4px solid #865c24;
+        padding: 8px 12px;
+        margin: 12px 0;
+        border-radius: 6px;
+        }
+
+        div.gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+        div.gallery-item {
+            margin: 5px;
+            width: 180px;
+            }
+
+        div.gallery-item img {
+            width: 100%;
+            height: auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */   
+            }
+
+        div.gallery-item div.desc {
+            padding: 15px;
+            text-align: center;
+            }
+
+        div.gallery-balanced {
+            display: flex;
+            justify-content: center;    
+            align-items: flex-start;    
+            gap: 40px;                   
+            flex-wrap: wrap;             
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        div.gallery-balanced .gallery-item {
+            display: flex;
+            flex-direction: column;      
+            align-items: center;         
+        }
+
+        div.gallery-balanced img {
+            height: 300px;              
+            width: auto;                       
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */
+        }
+
+        div.gallery-balanced .desc {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 12px;
+            max-width: 300px;            
+        }
+
+        div.gallery-equal {
+            display: flex;
+            justify-content: center;      
+            align-items: flex-start;      
+            flex-wrap: wrap;             
+            gap: 40px;                    
+            margin: 30px auto;
+            max-width: 70%;               
+            box-sizing: border-box;
+        }
+
+        div.gallery-equal .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 45%;                
+            min-width: 300px;            
+            max-width: 600px;            
+        }
+
+        div.gallery-equal img {
+            width: 100%;                  
+            height: auto;    
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* soft shadow */             
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Diffusion Models</h1>
+
+    <h2>Part A: The Power of Diffusion Models!</h2>
+
+    <h3>Part 0: Using DeepFloyd</h3>
+
+    <p>Before coding up any diffusion models, I first used the DeepFloyd diffusion model and played around with different text prompts. The model has two stages: 
+        the first outputs a 64 x 64 image which then becomes the input of the second stage. The final image is 256 x 256. The two parameters that I varied were the number
+        of inference steps taken for each of the two stages. The seed value (accounting for randomness) for all results was 100.
+    </p>
+
+    <aside class="note">Stage 1 inference steps = 20. Stage 2 inference steps = 20.</aside>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/tiered_rice_fields_40_20.jpg" alt="tiered_rice_fields_40_20">
+        </a>
+        <div class="desc">"a photo of tiered rice fields"</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/lithograph_childrens_fashion.jpg" alt="lithograph_childrens_fashion">
+        </a>
+        <div class="desc">"a lithograph of an 18th century children's fashion advertisement"</div>
+        </div>
+    </div>
+
+    <aside class="note">Stage 1 inference steps = 20. Stage 2 inference steps = 20 (first image) and 50 (second image).</aside>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/wuxia_hero.jpg" alt="wuxia_hero">
+        </a>
+        <div class="desc">"a watercolor of a wuxia hero"</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/wuxia_warrior_20_50.jpg" alt="wuxia_warrior_20_50">
+        </a>
+        <div class="desc">"a watercolor of a wuxia hero"</div>
+        </div>
+    </div>
+
+    <h3>Part 1.1 Implementing the Forward Process </h3>
+
+    <p>The main principle behind diffusion models is image denoising. The assumption is that noise was added to the original image (timestep t for noisy image) and we want to iteratively denoise it until 
+        we get back to the clean image at timestep 0. Therefore, the first step towards denoising the image means we need to add Gaussian noise to the original. The equation for adding noise becomes square root of 
+        some noise coefficient times x_0 plus the square root of (1 - the noise coefficient) times some epsilon where epsilon follows a Gaussian(0, 1) distribution.
+    </p>
+
+    <img src="./media/part1_1_figure.jpg" alt="part1_1_figure" class="centered_bigger">
+
+    <h3>Part 1.2 Classical Denoising </h3>
+
+    <p>If we simply try to "denoise" an image with a Gaussian, we will lose some of the noise along with the signal and the overall image will just be blurry.</p>
+
+    <img src="./media/part1_2_figure.jpg" alt="part1_2_figure" class="centered_bigger">
+
+    <h3>Part 1.3 One-Step Denoising </h3>
+
+    <p>A diffusion model, in this case a Unet, is trained to denoise images. However, if we try to denoise the image in one step, the algorithm will greatly hallucinate as you can see below. Here, I used part 1.1 to add noise to an image,
+        then I passed it into the diffusion model to calculate a noise estimate, and reordered the terms from the equation in part 1.1 to extract x_0: the predicted image without noise. 
+    </p>
+
+    <img src="./media/part1_3_figure.jpg" alt="part1_3_figure" class="centered_bigger">
+
+    <h3>Part 1.4 Iterative Denoising </h3>
+
+    <p>When we iteratively denoise the image, on the other hand, the results look much closer to the original image. For this part, I skipped some timesteps to get the model to denoise more quickly, but the update 
+        equation consists of a weighted combination of the current estimate of the image with one-step denoising (from previous timestep t-1 to the current one t) plus the image at timestep t plus a variance term. 
+    </p>
+
+    <img src="./media/part1_4_figure_1.jpg" alt="part1_4_figure_1" class="centered_bigger">
+
+    <img src="./media/part1_4_figure_2.jpg" alt="part1_4_figure_2" class="centered_bigger">
+
+    <h3>Part 1.5 Diffusion Model Sampling </h3>
+
+    <p>In part 1.4, we started off with a Campanile image that had some noise, but not so much that the image was pure signal. Therefore, we could reconstruct an image that was close in structure to the original. Instead of
+        starting with an image with noise, we can just start with a noisy image and let the model "hallucinate" an image. The text prompt for the following images was "a high quality photo."
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.5_generated_img.jpg" alt="part1.5_generated_img">
+        </a>
+        <div class="desc">Generated image 1</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.5_generated_img (1).jpg" alt="part1.5_generated_img (1)">
+        </a>
+        <div class="desc">Generated image 2</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.5_generated_img (2).jpg" alt="part1.5_generated_img (2)">
+        </a>
+        <div class="desc">Generated image 3</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.5_generated_img (3).jpg" alt="part1.5_generated_img (3)">
+        </a>
+        <div class="desc">Generated image 4</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.5_generated_img (4).jpg" alt="part1.5_generated_img (4)">
+        </a>
+        <div class="desc">Generated image 5</div>
+        </div>
+    </div>
+
+    <h3>Part 1.6 Classifier-Free Guidance (CFG) </h3>
+
+    <p>Hmmmmm....the generated images from part 1.5 didn't look very realistic. What we can instead do is shrink the pool of accepted images while greatly improving image quality. This is called 
+        Classifier-Free Guidance (CFG). Here, we will have two prompts that will create a conditional and an unconditional noise estimate for our image. The new noise estimate then becomes: unconditional 
+        noise estimate + gamma * (conditional - unconditional noise estimate). When we set gamma to be greater than 1, we can get high quality images. The conditional prompt for the images below was "a high quality photo" 
+        and the unconditional prompt was "" (null).
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.6_generated_img.jpg" alt="part1.6_generated_img">
+        </a>
+        <div class="desc">Generated image 1</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.6_generated_img (1).jpg" alt="part1.6_generated_img (1)">
+        </a>
+        <div class="desc">Generated image 2</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.6_generated_img (2).jpg" alt="part1.6_generated_img (2)">
+        </a>
+        <div class="desc">Generated image 3</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.6_generated_img (3).jpg" alt="part1.6_generated_img (3)">
+        </a>
+        <div class="desc">Generated image 4</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.6_generated_img (4).jpg" alt="part1.6_generated_img (4)">
+        </a>
+        <div class="desc">Generated image 5</div>
+        </div>
+    </div>
+
+    <h3>Part 1.7: Image-to-image Translation </h3>
+
+    <p>Using the CFG function above, here we can see the difference between starting from a completely noisy image (i_start = 1) vs starting at a less noisy image (i_start = 20)
+        where we can still reconstruct an image similar to the original image.
+    </p>
+
+    <img src="./media/part1.7_plot.jpg" alt="part1.7_plot" class="centered_bigger">
+
+    <h3>Part 1.7.1: Editing Hand-Drawn and Web Images </h3>
+
+    <p>I repeated part 1.7 for an image taken from the Internet (specifically Monet's Sunrise painting).</p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_1.jpg" alt="part1.7_web_1">
+        </a>
+        <div class="desc">i_start=1</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_2.jpg" alt="part1.7_web_2">
+        </a>
+        <div class="desc">i_start=3</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_3.jpg" alt="part1.7_web_3">
+        </a>
+        <div class="desc">i_start=5</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_4.jpg" alt="part1.7_web_4">
+        </a>
+        <div class="desc">i_start=7</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_5.jpg" alt="part1.7_web_5">
+        </a>
+        <div class="desc">i_start=10</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_6.jpg" alt="part1.7_web_6">
+        </a>
+        <div class="desc">i_start=20</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_original_img.jpg" alt="part1.7_web_original_img">
+        </a>
+        <div class="desc">Original Monet painting</div>
+        </div>
+
+    </div>
+
+    <p>I also repeated the result for 2 hand drawn pictures where the results also resembled the original drawing. </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_1.jpg" alt="part1.7_web_1">
+        </a>
+        <div class="desc">i_start=1</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_2.jpg" alt="part1.7_web_2">
+        </a>
+        <div class="desc">i_start=3</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_3.jpg" alt="part1.7_web_3">
+        </a>
+        <div class="desc">i_start=5</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_4.jpg" alt="part1.7_web_4">
+        </a>
+        <div class="desc">i_start=7</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_5.jpg" alt="part1.7_web_5">
+        </a>
+        <div class="desc">i_start=10</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_6.jpg" alt="part1.7_web_6">
+        </a>
+        <div class="desc">i_start=20</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw1_original.jpg" alt="part1.7_draw1_original">
+        </a>
+        <div class="desc">Original cat drawing</div>
+        </div>
+
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_1.jpg" alt="part1.7_web_1">
+        </a>
+        <div class="desc">i_start=1</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_2.jpg" alt="part1.7_web_2">
+        </a>
+        <div class="desc">i_start=3</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_3.jpg" alt="part1.7_web_3">
+        </a>
+        <div class="desc">i_start=5</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_4.jpg" alt="part1.7_web_4">
+        </a>
+        <div class="desc">i_start=7</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_5.jpg" alt="part1.7_web_5">
+        </a>
+        <div class="desc">i_start=10</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_6.jpg" alt="part1.7_web_6">
+        </a>
+        <div class="desc">i_start=20</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_draw2_original.jpg" alt="part1.7_draw1_original">
+        </a>
+        <div class="desc">Original emoji drawing</div>
+        </div>
+
+    </div>
+
+    <h3>Part 1.7.2: Inpainting </h3>
+
+    <p>I also played around with only using the diffusion model to reconstruct inside a masked region and have the non-masked region remain the same. The model did not perform as well on the autumn patterned image where
+        it was difficult to get anything even remotely realistic.
+    </p>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_campanile.jpg" alt="part1.7_campanile">
+        </a>
+        <div class="desc">Campanile</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_campanile_mask.jpg" alt="part1.7_campanile_mask">
+        </a>
+        <div class="desc">Campanile Mask</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_campanile_to_replace.jpg" alt="part1.7_campanile_to_replace">
+        </a>
+        <div class="desc">Hole to fill</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_inpainted_campanile.jpg" alt="part1.7_inpainted_campanile">
+        </a>
+        <div class="desc">Inpainted Campanile</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_web_original_img.jpg" alt="part1.7_monet">
+        </a>
+        <div class="desc">Monet painting</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_monet_mask.jpg" alt="part1.7_monet_mask">
+        </a>
+        <div class="desc">Monet Mask</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_monet_to_replace.jpg" alt="part1.7_monet_to_replace">
+        </a>
+        <div class="desc">Hole to fill</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_inpainted_monet.jpg" alt="part1.7_inpainted_monet">
+        </a>
+        <div class="desc">Inpainted Campanile</div>
+        </div>
+    </div>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="./media/part1.7_pattern_original.jpg" alt="part1.7_pattern">
+        </a>
+        <div class="desc">Autumn pattern</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_pattern_mask.jpg" alt="part1.7_pattern_mask">
+        </a>
+        <div class="desc">Pattern Mask</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_pattern_to_replace.jpg" alt="part1.7_pattern_to_replace">
+        </a>
+        <div class="desc">Hole to fill</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/part1.7_inpainted_pattern.jpg" alt="part1.7_inpainted_pattern">
+        </a>
+        <div class="desc">Inpainted Pattern</div>
+        </div>
+    </div>
+    
+    <h3>Part 1.7.3: Text-Conditional Image-to-image Translation </h3>
+
+    <p>Again using the CFG function from part 1.6, instead of using a generic prompt like "a high quality photo" for the conditional noise estimate, I used more specific prompts to "guide"
+        the estimated image to the original image manifold. The results ended up resembling both the original image as well as the prompt. 
+    </p>
+
+    <div class="img-container">
+        <img src="./media/part1.7.3_campanile_dress.jpg" alt="part1.7.3_campanile_dress" class="centered_bigger">
+        <div class="caption">Combined Campanile image with the following prompt: 'a sketch of a runway fashion design in the style of Dolce and Gabbana'</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/part1.7.3_toothless_pirate_map.jpg" alt="part1.7.3_toothless_pirate_map" class="centered_bigger">
+        <div class="caption">Combined a diagram of Toothless from How to Train Your Dragon with the following prompt: 'a drawing of a pirate treasure map'</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/part1.7.3_toothless_original.jpg" alt="dress" class="centered_huge">
+        <div class="caption">Original toothless diagram</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/part1.7.3_monet_renaissance.jpg" alt="part1.7.3_monet_renaissance" class="centered_bigger">
+        <div class="caption">Combined Monet's Sunrise with the following prompt: 'a lithograph of a city scene set in the Renaissance'</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/part1.7_web_original_img.jpg" alt="part1.7_monet_original" class="centered_huge">
+        <div class="caption">Original Monet Sunrise painting</div>
+    </div>
+
+    <h3>Part 1.8 Visual Anagrams </h3>
+
+    <p>A visual anagram is an optical illusion where one image can encode multiple images. For example, in the images below, if you flip them across the x axis, they become a different image.
+        To create this illusion, we need two noise estimates: one where the image is right side up, and one where the image goes through the network upside-down (and is then flipped right side up again 
+        so that it can be added together with the first to create the illusion). The result then becomes an average of those two image estimates. 
+    </p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/man_campfire_anagram_flipped.jpg" alt="man_campfire_anagram">
+        </a>
+        <div class="desc">Prompt: 'an oil painting of an old man'</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/man_campfire_anagram.jpg" alt="man_campfire_anagram">
+        </a>
+        <div class="desc">Prompt: 'an oil painting of people around a campfire'</div>
+        </div>
+    </div>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/house_and_castle_anagram.jpg" alt="house_and_castle_anagram">
+        </a>
+        <div class="desc">Prompt: 'an oil painting of a castle'</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/house_and_castle_anagram_flipped.jpg" alt="house_and_castle_anagram">
+        </a>
+        <div class="desc">Prompt: 'an oil painting of a house'</div>
+        </div>
+    </div>
+
+    <h3>Part 1.9 Hybrid Images </h3>
+
+    <p>Hybrid images are another form of optical illusion where there are multiple images in one. In this case, there is an image with high frequency information (details) that can be
+        seen up close and another with low frequency information that can be seen far away. Similar to part 1.8 we also again create two noisy image estimates, each with different prompts. 
+        To combine the two, we Gaussian blur one image and do image - Gaussian blur for the other image (to capture the high frequency information from the second).
+    </p>
+
+    <div class="gallery-equal">
+        <div class="gallery-item">
+            <img src="./media/skull_waterfall_hybrid.jpg" alt="man_campfire_anagram">
+        </a>
+        <div class="desc">Prompts: 'a lithograph of a skull' and 'a lithograph of a waterfall'</div>
+        </div>
+
+        <div class="gallery-item">
+            <img src="./media/castle_cake_hybrid.jpg" alt="house_and_castle_anagram">
+        </a>
+        <div class="desc">Prompt: 'an ink drawing of a cake' and 'an oil painting of a castle'</div>
+        </div>
+    </div>
+
+</body>
