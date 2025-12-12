@@ -3,6 +3,16 @@
 <head>
     <title>My Portfolio</title>
 
+    <meta charset="utf-8">
+    <title>MathJax Example</title>
+    <script>
+        window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+        svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
     <!-- For the gallery, I used https://www.w3schools.com/css/css_image_gallery.asp -->
     <style>
         body {
@@ -683,6 +693,235 @@
         </a>
         <div class="desc">Prompt: 'an ink drawing of a cake' and 'an oil painting of a castle'</div>
         </div>
+    </div>
+
+    <h2>Part B: Flow Matching from Scratch!</h2>
+
+    <h3>Part 1.1: Implementing the UNet</h3>
+
+    <p>To create an unconditional denoiser from scratch, I implemented the following U-Net architecture:</p>
+
+     <div class="img-container">
+        <img src="./media/unet_architecture.jpg" alt="unet_architecture" class="centered_bigger">
+    </div>
+
+    <p>Each of the blocks were a composition of Conv2d or ConvTranspose2d operations along with pooling/batch normalization/activation functions sandwiched between those layers.</p>
+
+    <h3>Part 1.2: Using the UNet to Train a Denoiser</h3>
+
+    <p>To train the denoiser, I generated image pairs of clean and noisy images by adding Gaussian noise (weighted by a σ) to the clean image. A sigma of 1 yields a 
+        completely noisy image and a sigma of 0 is a clean image as seen below. For training, I fixed σ = 0.5.
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2_plot.jpg" alt="partb_1.2" class="centered_bigger">
+    </div>
+
+    <h3>Part 1.2.1: Training</h3>
+
+    <p>Here I trained the UNet denoiser on the MNIST dataset with the following parameters: </p>
+
+    <aside class="note param-card"> 
+        <h4>Model Parameters</h4>
+
+        <ul>
+            <li>
+                <strong>Architecture Parameters</strong>
+                <ul>
+                    <li>in_channels = 1</li>
+                    <li>hidden dimensions = 128</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Hyperparameters</strong>
+                <ul>
+                    <li>batch size = 256</li>
+                    <li>learning rate = 1e-4</li>
+                    <li>noise level (σ) = 0.5</li>
+                    <li>number of epochs = 5</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Optimizer and Loss</strong>
+                <ul>
+                    <li>optimizer = Adam</li>
+                    <li>loss = MSE</li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.1_loss.jpg" alt="partb_1.2.1" class="centered_bigger">
+        <div class="caption">L2 training loss curve after 5 epochs</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.1_plot2.jpg" alt="partb_1.2.1_plot2" class="centered_bigger">
+        <div class="caption">Results after sampling at epoch=1 (3rd col) and epoch=5 (last col)</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.1_plot.jpg" alt="partb_1.2.1_plot" class="centered_bigger">
+        <div class="caption">Results after sampling on the testing dataset</div>
+    </div>
+
+    <h3>Part 1.2.2: Out-of-Distribution Testing</h3>
+
+    <p>When testing the trained denoising model on out of distribution noise levels (i.e. any σ that is not 0.5), the results look fairly decent for σ between 0.0 and 0.6. 
+        After that, the model starts to hallucinate and produces poor reconstructions. 
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.2_plot.jpg" alt="partb_1.2.2_plot" class="centered_bigger">
+        <div class="caption">Sample results on the test set with out-of-distribution noise levels.</div>
+    </div>
+
+    <h3>Part 1.2.3: Denoising Pure Noise</h3>
+
+    <p>Going back to trying to generate images from noise, I created purely noisy images by inputting Gaussian noise into the model. Although the loss decreases, it never reaches the 
+        same value as in part 1.2.1 (~0.02). And if you look at the two figures below that, the sampled outputs from both training and testing look very similar. This is most likely because 
+        we are using MSE loss, which minimizes the prediction to the average of the dataset. So effectively, the model outputs the average of all of the digits in the dataset which looks something 
+        like an 8 (which makes sense given how most digits have curves in them: 0, 2, 3, 6, 9).
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.3_loss.jpg" alt="partb_1.2.3" class="centered_bigger">
+        <div class="caption">Loss curve for naive generative task on UNet.</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.3_figure1.jpg" alt="partb_1.2.3_figure1" class="centered_bigger">
+        <div class="caption">Results after sampling at epoch=1 and epoch=5</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_1.2.3_figure2.jpg" alt="partb_1.2.3_figure2" class="centered_bigger">
+        <div class="caption">Results after sampling on the testing dataset</div>
+    </div>
+
+    <h3>Part 2.1: Adding Time Conditioning to UNet</h3>
+
+    <p>To do flow matching, we need to introduce a time component into the UNet where the goal is to predict the flow going from a more noisy image to a less noisy image. 
+        We can do linear interpolation to approximate the image at some timestep t:
+        $$x_t = (1 - t)x_0 + tx_1$$
+        where $x_0$ is the noisy image and $x_1$ is the clean image. $x_t$ can also be defined as a vector field of the position of our image estimate with respect to the positions of the 
+        clean and noisy images. When the field is differentiated with respect to t, we get a change in velocity or flow:
+        $$\frac{dx_t}{dt}=x_1 - x_0$$
+        Finally, our loss will calculate the mean squared error between the flow prediction of the UNet and the actual flow $x_1 - x_0$. To implement this, I multiplied FCBlocks pictured below 
+        by the Unflatten result and result after the first UpBlock from the UNet architecture figure in part 1.1.
+    </p>
+
+    <div class="img-container">
+        <img src="./media/fcb_block.jpg" alt="fcb_block" class="centered_bigger">
+        <div class="caption">FCBlock architecture</div>
+    </div>
+
+    <h3>Part 2.2: Training the Time-Conditioned UNet</h3>
+
+    <p>After implementing the changes described in part 2.1, I trained the flow UNet architecture on the MNIST dataset with the following parameters:</p>
+
+    <aside class="note param-card"> 
+        <h4>Model Parameters</h4>
+
+        <ul>
+            <li>
+                <strong>Architecture Parameters</strong>
+                <ul>
+                    <li>in_channels = 1</li>
+                    <li>hidden dimensions = 128</li>
+                    <li>number of classes = 10</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Hyperparameters</strong>
+                <ul>
+                    <li>batch size = 64</li>
+                    <li>learning rate = 1e-2</li>
+                    <li>number of epochs = 10</li>
+                </ul>
+            </li>
+
+            <li>
+                <strong>Optimizer and Loss</strong>
+                <ul>
+                    <li>optimizer = Adam</li>
+                    <li>loss = MSE</li>
+                    <li>scheduler = exponential lr with $\gamma = 0.1^{1/\text{num_epochs}}$</li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="img-container">
+        <img src="./media/partb_2.2_loss.jpg" alt="partb_2.2_loss" class="centered_bigger">
+        <div class="caption">MSE training loss curve of the conditioned UNet</div>
+    </div>
+
+    <h3>Part 2.3: Sampling from the Time-Conditioned UNet</h3>
+
+    <p>Then, to sample the UNet at different epochs and check how well it denoises the inputs, I set the model into evaluation mode, and iteratively denoised a random input image.
+        The results are pictured below:
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_2.3_figure.jpg" alt="partb_2.3_figure" class="centered_bigger">
+        <div class="caption">Sampling the time conditioned unet at epochs 1, 5, and 10</div>
+    </div>
+
+    <h3>Part 2.4: Adding Class-Conditioning to UNet</h3>
+
+    <p>For better control of the generation results, I also added class conditioning to the UNet by implementing two more FCBlocks at the Unflattened and UpBlock1 layers. I also encoded the 
+        class condition vector as a one-hot vector where 10% of the time, the vector would be set to 0. 
+    </p>
+
+    <h3>Part 2.5: Training the Class-Conditioned UNet</h3>
+
+    <p>All the parameters for this part were the same as in part 2.2.</p>
+
+    <div class="img-container">
+        <img src="./media/partb_2.5_loss.jpg" alt="partb_2.5_loss" class="centered_bigger">
+        <div class="caption">MSE training loss curve for class conditioned UNet</div>
+    </div>
+
+    <h3>Part 2.6: Sampling from the Class-Conditioned UNet</h3>
+
+    <p>Sampling from the class-conditioned UNet is similar to the classifier-free guidance from part 1. We have two model estimates: a conditional estimate that uses the one-hot class label corresponding 
+        to the given noisy image and an unconditional estimate where the one-hot vector is 0. The two estimates are then combined together to form the cumulative model estimate and iteratively denoise the input image. 
+        The images below contain 4 instances of each digit, sampled at epochs 1, 5, and 10.
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_2.6_epoch0.jpg" alt="partb_2.6_epoch0" class="centered_bigger">
+        <div class="caption">Epoch 1</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_2.6_epoch4.jpg" alt="partb_2.6_epoch4" class="centered_bigger">
+        <div class="caption">Epoch 5</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_2.6_epoch9.jpg" alt="partb_2.6_epoch9" class="centered_bigger">
+        <div class="caption">Epoch 10</div>
+    </div>
+
+    <p>What happens if we get rid of the scheduler we used throughout part 2? Well there isn't much of a difference! The MNIST dataset is fairly simple, plus we were already using Adam: an adaptive learning 
+        rate optimizer, that is sufficient for minimizing the MSE loss in our case. With the scheduler, you can see that the loss converges slightly faster, but that doesn't make too big of a difference for such a 
+        small dataset like MNIST.
+    </p>
+
+    <div class="img-container">
+        <img src="./media/partb_2.6_no_scheduler_epoch9.jpg" alt="partb_2.6_no_scheduler_epoch9" class="centered_bigger">
+        <div class="caption">Sampling at epoch 10 after training without a scheduler</div>
+    </div>
+
+    <div class="img-container">
+        <img src="./media/partb_2.6_loss_no_scheduler.jpg" alt="partb_2.6_loss_no_scheduler" class="centered_bigger">
+        <div class="caption">Loss after removing the scheduler</div>
     </div>
 
 </body>
